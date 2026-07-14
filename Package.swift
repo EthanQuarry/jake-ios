@@ -5,13 +5,54 @@ import PackageDescription
 let package = Package(
   name: "JakeSDK",
   platforms: [
-    .iOS(.v15)
+    .iOS(.v15),
+    .macOS(.v13),
   ],
   products: [
-    .library(name: "JakeSDK", targets: ["JakeSDK"])
+    .library(name: "SupportKitCore", targets: ["SupportKitCore"]),
+    .library(name: "SupportKitUI", targets: ["SupportKitUI"]),
+    .library(name: "CustomAgentAdapter", targets: ["CustomAgentAdapter"]),
+    .library(name: "JakeSupportAdapter", targets: ["JakeSupportAdapter"]),
+    .library(name: "IntercomAdapter", targets: ["IntercomAdapter"]),
+    .library(name: "SupportAdapterKit", targets: ["SupportAdapterKit"]),
+    .library(name: "JakeSDK", targets: ["JakeSDK"]),
+    .library(name: "IntercomSupportAdapter", targets: ["IntercomSupportAdapter"]),
+    .executable(name: "SupportSwitcherExample", targets: ["SupportSwitcherExample"]),
+  ],
+  dependencies: [
+    .package(
+      url: "https://github.com/intercom/intercom-ios-sp.git",
+      .upToNextMajor(from: "19.6.5")
+    )
   ],
   targets: [
-    .target(name: "JakeSDK"),
-    .testTarget(name: "JakeSDKTests", dependencies: ["JakeSDK"]),
+    .target(name: "SupportKitCore"),
+    .target(name: "SupportKitUI", dependencies: ["SupportKitCore"]),
+    .target(name: "CustomAgentAdapter", dependencies: ["SupportKitCore"]),
+    .target(name: "JakeSupportAdapter", dependencies: ["SupportKitCore", "JakeSDK"]),
+    .target(
+      name: "IntercomAdapter",
+      dependencies: [
+        "SupportKitCore",
+        .product(name: "Intercom", package: "intercom-ios-sp"),
+      ]
+    ),
+    .target(name: "SupportAdapterKit"),
+    .target(name: "JakeSDK", dependencies: ["SupportAdapterKit"]),
+    .target(
+      name: "IntercomSupportAdapter",
+      dependencies: [
+        "SupportAdapterKit",
+        .product(name: "Intercom", package: "intercom-ios-sp"),
+      ]
+    ),
+    .executableTarget(
+      name: "SupportSwitcherExample",
+      dependencies: ["SupportAdapterKit"],
+      path: "Examples/SupportSwitcherCLI"
+    ),
+    .testTarget(name: "SupportAdapterKitTests", dependencies: ["SupportAdapterKit"]),
+    .testTarget(name: "SupportKitCoreTests", dependencies: ["SupportKitCore"]),
+    .testTarget(name: "JakeSDKTests", dependencies: ["JakeSDK", "SupportAdapterKit"]),
   ]
 )

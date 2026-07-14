@@ -1,67 +1,128 @@
-# Jake iOS SDK
+# SupportKit for iOS
 
-`JakeSDK` presents Jake Messenger inside any UIKit or SwiftUI app. The first release is deliberately small: configure a workspace, authenticate a customer, and open the Messenger as a native sheet.
+A vendor-neutral iOS support channel that can use Jake, Intercom Fin, or a company-owned agent
+without putting agent logic or secrets in the app.
 
-## Requirements
+## Architecture
 
-- iOS 15 or later
-- Swift 6 / Xcode 16 or later
-- A Jake workspace, public key, and short-lived user token issued by your backend
+The visible channel and the answering agent are deliberately different choices:
+
+| Product | Responsibility |
+| --- | --- |
+| `SupportKitCore` | Identity, channel contract, capability model, and pinned-channel coordinator |
+| `SupportKitUI` | Native SwiftUI conversation interface |
+| `CustomAgentAdapter` | Router-backed native channel for Jake, Fin, or internal agents |
+| `JakeSupportAdapter` | Optional opaque Jake hosted Messenger channel |
+| `IntercomAdapter` | Optional opaque Intercom Messenger channel |
+
+`JakeSDK`, `SupportAdapterKit`, and `IntercomSupportAdapter` remain available as compatibility
+products during migration.
+
+The universal path is `SupportKitUI` → `RouterChannelAdapter` → canonical router → selected agent.
+That path supports agent hot-swapping through a normalized server-side handoff. Vendor Messenger
+SDKs remain useful channels, but their iOS APIs do not make them arbitrary-agent transports; their
+adapters therefore advertise `externalAgentRouting == false`.
 
 ## Install
 
-In Xcode, choose **File → Add Package Dependencies**, enter this repository URL, and add the `JakeSDK` product to your app target.
+Add this Swift package in Xcode. For the portable native experience, link:
 
-## Configure
+- `SupportKitCore`
+- `SupportKitUI`
+- `CustomAgentAdapter`
 
-Configure Jake once during app launch:
+Link `JakeSupportAdapter` or `IntercomAdapter` only when you intentionally want that vendor's
+hosted Messenger UI.
+
+## Native channel with any agent
 
 ```swift
-import JakeSDK
+import CustomAgentAdapter
+import SupportKitCore
+import SupportKitUI
 
-Jake.configure(
-    workspaceId: "workspace_123",
-    publicKey: "pk_live_123"
+let channel = RouterChannelAdapter(
+  configuration: SupportRouterConfiguration(
+    baseURL: URL(string: "https://support-api.example.com")!,
+    agentProviderID: "jake", // or "intercom-fin" / "internal"
+    sessionToken: { try await applicationBackend.shortLivedSupportToken() }
+  )
+)
+
+let coordinator = SupportChannelCoordinator()
+try coordinator.register(channel)
+try coordinator.select(.native)
+try await coordinator.startSession(
+  SupportChannelSession(
+    customer: SupportCustomer(
+      id: currentUser.databaseID,
+      externalID: currentUser.id,
+      name: currentUser.name,
+      email: currentUser.email
+    )
+  )
+)
+
+let model = SupportConversationModel(channel: channel)
+let view = SupportConversationView(model: model)
+```
+
+For remote routing, call `SupportSelectionClient.select` first and pass its `agentProvider` into
+`SupportRouterConfiguration`. The selection endpoint derives rollout attributes server-side and
+returns both the visible channel and agent. Cache it only for `ttlSeconds`, and never apply a new
+selection to an active conversation.
+
+The session token proves the customer identity. The router ignores client-supplied identity when
+authorizing existing conversations.
+
+## Explicit agent handoff
+
+```swift
+try await channel.requestAgentHandoff(
+  to: "intercom-fin",
+  conversationID: conversationID,
+  currentIntent: "refund invoice INV-42",
+  reason: "Fin rollout cohort"
 )
 ```
 
-Authenticate after your own sign-in flow. The token must come from your server; never ship a Jake private secret in an app:
+The server prepares the target first and commits the assignment atomically. If import fails, the
+source agent remains pinned. Configuration changes never silently move an active conversation.
+
+## Opaque Messenger channels
 
 ```swift
-try await Jake.authenticate(
-    userId: currentUser.id,
-    token: tokenFromYourBackend
+import JakeSupportAdapter
+
+try coordinator.register(
+  JakeChannelAdapter(
+    configuration: JakeConfiguration(
+      workspaceId: "workspace_123",
+      publicKey: "jake_pk_123"
+    )
+  )
 )
 ```
 
-Present Messenger from SwiftUI:
+Intercom works the same way with `IntercomChannelAdapter`. Supply only short-lived user tokens or
+JWTs from your backend. Never ship a Jake secret, Intercom API secret, Fin access token, MCP token,
+or provider signing key in the application.
 
-```swift
-Button("Contact support") {
-    Jake.present()
-}
-```
+## Configuration repository
 
-Or from UIKit:
+`Templates/customer-config` is the optional per-customer repository. Schema v2 selects
+`defaultChannel` independently from `defaultAgentProvider`, includes reviewed routing/evaluation
+files, and references secret names rather than values. Git is the review/history layer; production
+uses a validated immutable imported version, not a live checkout.
 
-```swift
-Jake.present(from: self)
-```
+See [architecture](docs/architecture.md), [backend contract](docs/backend-contract.md),
+[migration](docs/migration.md), and [security](SECURITY.md).
 
-Clear the Jake session when the customer signs out:
-
-```swift
-Jake.logout()
-```
-
-See Openline's `docs/ios-integration.md` for the full integration, authentication, event, and Messenger bridge contracts.
-
-## Development
-
-Run the platform-independent test suite with:
+## Verification
 
 ```bash
 swift test
+node --test Examples/SelectionServer/selection.test.mjs
 ```
 
-The UIKit and WebKit presentation code is compiled for iOS. A full iOS build requires Xcode rather than the standalone Command Line Tools.
+Requires iOS 15+, Swift 6, and Xcode 16+. MIT licensed; Jake's proprietary runtime is not included.

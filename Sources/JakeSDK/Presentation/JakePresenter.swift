@@ -11,12 +11,11 @@
       from source: UIViewController?,
       onMessage: @escaping (JakeWebMessage) -> Void,
       onError: @escaping (JakeError) -> Void
-    ) {
+    ) throws {
       guard messenger == nil else { return }
 
       guard let source = source ?? Self.topViewController() else {
-        onError(.presentationUnavailable)
-        return
+        throw JakeError.presentationUnavailable
       }
 
       let messenger = JakeMessengerViewController(

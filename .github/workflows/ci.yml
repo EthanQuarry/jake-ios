@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  swift:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show Xcode version
+        run: xcodebuild -version
+      - name: Test core and Jake SDK
+        run: swift test
+      - name: Build iOS products
+        run: |
+          xcodebuild -scheme SupportKitCore -destination 'generic/platform=iOS Simulator' build
+          xcodebuild -scheme SupportKitUI -destination 'generic/platform=iOS Simulator' build
+          xcodebuild -scheme CustomAgentAdapter -destination 'generic/platform=iOS Simulator' build
+          xcodebuild -scheme JakeSupportAdapter -destination 'generic/platform=iOS Simulator' build
+          xcodebuild -scheme IntercomAdapter -destination 'generic/platform=iOS Simulator' build
+          xcodebuild -scheme JakeSDK -destination 'generic/platform=iOS Simulator' build
+          xcodebuild -scheme IntercomSupportAdapter -destination 'generic/platform=iOS Simulator' build
+      - name: Run lifecycle example
+        run: swift run SupportSwitcherExample jake
+
+  selection-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test Examples/SelectionServer/selection.test.mjs

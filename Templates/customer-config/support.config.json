@@ -1,0 +1,42 @@
+{
+  "$schema": "../../Schemas/support-routing.schema.json",
+  "schemaVersion": 2,
+  "defaultChannel": "supportkit-native",
+  "channels": {
+    "supportkit-native": {
+      "enabled": true,
+      "displayName": "Support"
+    },
+    "jake-messenger": {
+      "enabled": false,
+      "displayName": "Jake Messenger"
+    },
+    "intercom-messenger": {
+      "enabled": false,
+      "displayName": "Intercom Messenger"
+    }
+  },
+  "defaultAgentProvider": "jake",
+  "agentProviders": {
+    "jake": {
+      "enabled": true,
+      "displayName": "Jake",
+      "credentialSecretNames": [
+        "JAKE_AGENT_SESSION_ISSUER",
+        "SUPPORT_ROUTER_HANDOFF_SECRET"
+      ]
+    },
+    "intercom-fin": {
+      "enabled": false,
+      "displayName": "Intercom Fin",
+      "credentialSecretName": "INTERCOM_FIN_ACCESS_TOKEN"
+    },
+    "internal": {
+      "enabled": false,
+      "displayName": "Company agent",
+      "credentialSecretName": "INTERNAL_AGENT_AUTH"
+    }
+  },
+  "humanHandoffAdapter": "intercom-inbox",
+  "routing": []
+}

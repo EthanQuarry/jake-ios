@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "defaultChannel": "supportkit-native",
+  "channels": {
+    "supportkit-native": { "enabled": true },
+    "intercom-messenger": { "enabled": true }
+  },
+  "defaultAgentProvider": "jake",
+  "agentProviders": {
+    "jake": { "enabled": true },
+    "intercom-fin": { "enabled": true },
+    "internal": { "enabled": true }
+  },
+  "humanHandoffAdapter": "intercom-inbox",
+  "routing": [
+    {
+      "agentProvider": "internal",
+      "reason": "enterprise customers use the company agent",
+      "match": { "attributes": { "plan": ["enterprise"] } }
+    },
+    {
+      "channel": "supportkit-native",
+      "agentProvider": "intercom-fin",
+      "reason": "Fin beta with portable UI",
+      "match": { "attributes": { "supportBeta": [true] } }
+    }
+  ]
+}

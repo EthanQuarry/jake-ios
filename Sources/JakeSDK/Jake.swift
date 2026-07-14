@@ -54,6 +54,10 @@ public enum Jake {
   }
 
   #if canImport(UIKit)
+    static func presentForAdapter() throws {
+      try client.presentThrowing()
+    }
+
     public static func present() {
       client.present()
     }

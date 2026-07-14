@@ -110,20 +110,24 @@ final class JakeClient {
   #if canImport(UIKit)
     func present(from viewController: UIViewController? = nil) {
       do {
-        guard let configuration else { throw JakeError.notConfigured }
-        guard let session else { throw JakeError.authenticationRequired }
-        let request = try JakeMessengerRequest.make(configuration: configuration, session: session)
-        presenter.present(
-          request: request,
-          from: viewController,
-          onMessage: { [weak self] message in self?.handle(message) },
-          onError: { [weak self] error in self?.report(error) }
-        )
+        try presentThrowing(from: viewController)
       } catch let error as JakeError {
         report(error)
       } catch {
         report(.messengerLoadFailed(error.localizedDescription))
       }
+    }
+
+    func presentThrowing(from viewController: UIViewController? = nil) throws {
+      guard let configuration else { throw JakeError.notConfigured }
+      guard let session else { throw JakeError.authenticationRequired }
+      let request = try JakeMessengerRequest.make(configuration: configuration, session: session)
+      try presenter.present(
+        request: request,
+        from: viewController,
+        onMessage: { [weak self] message in self?.handle(message) },
+        onError: { [weak self] error in self?.report(error) }
+      )
     }
 
     func dismiss() {
