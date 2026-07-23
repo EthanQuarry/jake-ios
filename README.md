@@ -108,6 +108,40 @@ Intercom works the same way with `IntercomChannelAdapter`. Supply only short-liv
 JWTs from your backend. Never ship a Jake secret, Intercom API secret, Fin access token, MCP token,
 or provider signing key in the application.
 
+## Hosted widget in Xcode
+
+Use `JakeSDK` when the iOS experience must be the production web widget rather than a SwiftUI
+recreation:
+
+```swift
+import JakeSDK
+
+Jake.configure(
+  workspaceId: session.workspaceId,
+  publicKey: session.publicKey
+)
+try await Jake.authenticate(userId: currentUser.id, token: session.token)
+Jake.present()
+```
+
+The default Messenger URL is `https://widget.tryjake.ai/messenger`. `Jake.present()` mounts that
+hosted widget directly in a native sheet, so its branding, conversation UI, composer, and behavior
+stay aligned with the web widget.
+
+For local simulator development, the example server includes a session-token bridge. It keeps the
+application secret on the Mac and returns only a short-lived customer session to the app:
+
+```bash
+cd Examples/SelectionServer
+cp .env.example .env.local
+# Add the application's public key and secret to .env.local.
+./run-local.sh
+```
+
+The bridge listens on `http://127.0.0.1:8787/mobile/support-token`. A production application must
+implement the same server-side responsibility in its own authenticated backend; it must never put
+the Jake application secret in the iOS bundle.
+
 ## Configuration repository
 
 `Templates/customer-config` is the optional per-customer repository. Schema v2 selects

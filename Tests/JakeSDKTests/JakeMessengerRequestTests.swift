@@ -30,7 +30,7 @@ final class JakeMessengerRequestTests: XCTestCase {
 
     XCTAssertEqual(query["theme"], "dark")
     XCTAssertEqual(query["workspace_id"], "workspace_123")
-    XCTAssertNil(query["user_id"])
+    XCTAssertFalse(query.keys.contains("user_id"))
     XCTAssertEqual(query["platform"], "ios")
     XCTAssertFalse(url.absoluteString.contains("secret.jwt.token"))
     XCTAssertFalse(url.absoluteString.contains("user_456"))
