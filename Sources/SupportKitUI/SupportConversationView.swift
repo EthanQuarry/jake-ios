@@ -85,6 +85,30 @@
 
     public var body: some View {
       VStack(spacing: 0) {
+        HStack(spacing: 10) {
+          ZStack(alignment: .bottomTrailing) {
+            Circle()
+              .fill(Color(.systemGray5))
+              .frame(width: 34, height: 34)
+              .overlay {
+                Image(systemName: "bubble.left.and.bubble.right.fill")
+                  .font(.system(size: 15, weight: .semibold))
+                  .foregroundStyle(Color(.label))
+              }
+            Circle()
+              .fill(Color.green)
+              .frame(width: 10, height: 10)
+              .overlay(Circle().stroke(Color(.systemBackground), lineWidth: 2))
+          }
+          Text("Support")
+            .font(.system(size: 15, weight: .semibold))
+          Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(.regularMaterial)
+        .overlay(alignment: .bottom) { Divider() }
+
         ScrollViewReader { proxy in
           ScrollView {
             LazyVStack(spacing: 12) {
@@ -92,19 +116,23 @@
                 HStack {
                   if message.role == .customer { Spacer(minLength: 44) }
                   Text(message.body)
-                    .padding(12)
+                    .font(.system(size: 15))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 11)
                     .background(
-                      message.role == .customer ? Color.accentColor : Color.secondary.opacity(0.14)
+                      message.role == .customer ? Color(.label) : Color(.systemGray6)
                     )
-                    .foregroundStyle(message.role == .customer ? Color.white : Color.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .foregroundStyle(message.role == .customer ? Color(.systemBackground) : Color(.label))
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                   if message.role != .customer { Spacer(minLength: 44) }
                 }
                 .id(message.id)
               }
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 18)
           }
+          .background(Color(.systemBackground))
           .onChange(of: model.messages.count) { _ in
             if let id = model.messages.last?.id {
               withAnimation { proxy.scrollTo(id, anchor: .bottom) }
@@ -140,13 +168,22 @@
             .textFieldStyle(.roundedBorder)
             .onSubmit { model.send() }
           Button(action: model.send) {
-            if model.isSending { ProgressView() } else { Image(systemName: "arrow.up.circle.fill") }
+            if model.isSending {
+              ProgressView()
+            } else {
+              Image(systemName: "arrow.up.circle.fill")
+                .font(.system(size: 24))
+            }
           }
+          .foregroundStyle(Color(.label))
           .disabled(
             model.isSending || model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
-        .padding()
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(.regularMaterial)
       }
+      .background(Color(.systemBackground))
     }
   }
 #endif
