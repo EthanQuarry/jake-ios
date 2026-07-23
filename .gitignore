@@ -5,3 +5,4 @@ DerivedData/
 .DS_Store
 Examples/SelectionServer/.env.local
 Examples/SelectionServer/.env
+.env
