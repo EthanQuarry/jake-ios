@@ -42,17 +42,14 @@
 
     override func viewDidLoad() {
       super.viewDidLoad()
-      title = "Jake Support"
       view.backgroundColor = .systemBackground
-      navigationItem.rightBarButtonItem = UIBarButtonItem(
-        systemItem: .close,
-        primaryAction: UIAction { [weak self] _ in self?.dismiss(animated: true) }
-      )
 
       webView.navigationDelegate = self
       webView.uiDelegate = self
       webView.allowsLinkPreview = false
       webView.scrollView.contentInsetAdjustmentBehavior = .never
+      webView.scrollView.keyboardDismissMode = .interactive
+      webView.scrollView.automaticallyAdjustsScrollIndicatorInsets = false
 
       for subview in [webView, spinner, errorView] {
         subview.translatesAutoresizingMaskIntoConstraints = false

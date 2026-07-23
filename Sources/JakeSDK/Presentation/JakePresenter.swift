@@ -29,21 +29,20 @@
         pendingCommands.removeAll()
       }
 
-      let navigation = UINavigationController(rootViewController: messenger)
-      navigation.modalPresentationStyle = .pageSheet
-      if let sheet = navigation.sheetPresentationController {
+      messenger.modalPresentationStyle = .pageSheet
+      if let sheet = messenger.sheetPresentationController {
         sheet.detents = [.large()]
         sheet.prefersGrabberVisible = true
         sheet.prefersScrollingExpandsWhenScrolledToEdge = false
       }
 
       self.messenger = messenger
-      source.present(navigation, animated: true)
+      source.present(messenger, animated: true)
     }
 
     func dismiss() {
       guard let messenger else { return }
-      messenger.navigationController?.dismiss(animated: true)
+      messenger.dismiss(animated: true)
       self.messenger = nil
     }
 

@@ -1,7 +1,7 @@
 import Foundation
 
 public struct JakeConfiguration: Equatable, Sendable {
-  public static let hostedMessengerURL = URL(string: "https://app.tryjake.ai/messenger")!
+  public static let hostedMessengerURL = URL(string: "https://widget.tryjake.ai/messenger")!
 
   public let workspaceId: String
   public let publicKey: String

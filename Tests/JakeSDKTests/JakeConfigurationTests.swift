@@ -3,6 +3,13 @@ import XCTest
 @testable import JakeSDK
 
 final class JakeConfigurationTests: XCTestCase {
+  func testUsesTheProductionWebWidgetByDefault() {
+    XCTAssertEqual(
+      JakeConfiguration.hostedMessengerURL.absoluteString,
+      "https://widget.tryjake.ai/messenger"
+    )
+  }
+
   func testTrimsIdentifiers() throws {
     let configuration = JakeConfiguration(
       workspaceId: "  workspace_123 ",

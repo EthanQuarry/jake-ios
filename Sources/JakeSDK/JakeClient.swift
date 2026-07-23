@@ -1,5 +1,9 @@
 import Foundation
 
+#if canImport(UIKit)
+  import UIKit
+#endif
+
 @MainActor
 final class JakeClient {
   weak var delegate: (any JakeDelegate)?

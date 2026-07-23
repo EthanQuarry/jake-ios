@@ -53,6 +53,7 @@ let package = Package(
     ),
     .testTarget(name: "SupportAdapterKitTests", dependencies: ["SupportAdapterKit"]),
     .testTarget(name: "SupportKitCoreTests", dependencies: ["SupportKitCore"]),
+    .testTarget(name: "SupportKitUITests", dependencies: ["SupportKitUI", "SupportKitCore"]),
     .testTarget(name: "JakeSDKTests", dependencies: ["JakeSDK", "SupportAdapterKit"]),
   ]
 )
