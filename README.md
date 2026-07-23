@@ -138,6 +138,9 @@ cp .env.example .env.local
 ./run-local.sh
 ```
 
+The launcher also accepts `.env` when that is your existing local convention. Both local
+environment filenames are ignored by git.
+
 The bridge listens on `http://127.0.0.1:8787/mobile/support-token`. A production application must
 implement the same server-side responsibility in its own authenticated backend; it must never put
 the Jake application secret in the iOS bundle.

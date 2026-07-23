@@ -39,7 +39,7 @@
       NotificationCenter.default.addObserver(
         self,
         selector: #selector(unreadChanged),
-        name: Notification.Name(rawValue: IntercomUnreadConversationCountDidChangeNotification),
+        name: .IntercomUnreadConversationCountDidChange,
         object: nil
       )
     }
@@ -57,8 +57,8 @@
       }
     }
 
-    public func present() async throws { Intercom.presentIntercom() }
-    public func dismiss() async { Intercom.hideIntercom() }
+    public func present() async throws { Intercom.present() }
+    public func dismiss() async { Intercom.hide() }
     public func setPushToken(_ token: Data) async throws {
       try await withCheckedThrowingContinuation { continuation in
         Intercom.setDeviceToken(token) { result in continuation.resume(with: result) }

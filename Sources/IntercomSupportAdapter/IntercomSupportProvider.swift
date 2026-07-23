@@ -64,11 +64,11 @@
     }
 
     public func present() async throws {
-      Intercom.presentIntercom()
+      Intercom.present()
     }
 
     public func dismiss() async {
-      Intercom.hideIntercom()
+      Intercom.hide()
     }
 
     public func logout() async {
@@ -124,25 +124,25 @@
       center.addObserver(
         self,
         selector: #selector(messengerDidShow),
-        name: Notification.Name(rawValue: IntercomWindowDidShowNotification),
+        name: .IntercomWindowDidShow,
         object: nil
       )
       center.addObserver(
         self,
         selector: #selector(messengerDidHide),
-        name: Notification.Name(rawValue: IntercomWindowDidHideNotification),
+        name: .IntercomWindowDidHide,
         object: nil
       )
       center.addObserver(
         self,
         selector: #selector(unreadCountDidChange),
-        name: Notification.Name(rawValue: IntercomUnreadConversationCountDidChangeNotification),
+        name: .IntercomUnreadConversationCountDidChange,
         object: nil
       )
       center.addObserver(
         self,
         selector: #selector(conversationDidStart),
-        name: Notification.Name(rawValue: IntercomDidStartNewConversationNotification),
+        name: .IntercomDidStartNewConversation,
         object: nil
       )
     }
