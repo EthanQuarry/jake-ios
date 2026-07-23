@@ -28,6 +28,7 @@ struct JakeWebCommand {
   }
 
   #if canImport(UIKit)
+    @MainActor
     static func deviceContext() -> Self {
       let bundle = Bundle.main
       let device = UIDevice.current
