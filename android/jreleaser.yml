@@ -33,5 +33,10 @@ deploy:
         # PomChecker does not load the Android Maven extension and therefore
         # rejects the standard "aar" packaging before Central can validate it.
         applyMavenCentralRules: false
+        sign: true
+        checksums: true
+        sourceJar: true
+        javadocJar: true
+        verifyPom: false
         stagingRepositories:
           - build/staging-deploy
