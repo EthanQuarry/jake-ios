@@ -1,0 +1,37 @@
+project:
+  name: jake-sdk
+  version: 0.1.0
+  description: Jake hosted support Messenger for Android.
+  authors:
+    - Ethan Quarry
+  license: MIT
+  inceptionYear: 2026
+  links:
+    homepage: https://tryjake.ai
+    documentation: https://github.com/EthanQuarry/jake-ios
+    bugTracker: https://github.com/EthanQuarry/jake-ios/issues
+  languages:
+    java:
+      groupId: ai.tryjake
+
+signing:
+  active: ALWAYS
+  pgp:
+    active: ALWAYS
+    armored: true
+    mode: COMMAND
+    verify: true
+
+deploy:
+  maven:
+    mavenCentral:
+      app:
+        active: ALWAYS
+        url: https://central.sonatype.com/api/v1/publisher
+        authorization: BASIC
+        namespace: ai.tryjake
+        # PomChecker does not load the Android Maven extension and therefore
+        # rejects the standard "aar" packaging before Central can validate it.
+        applyMavenCentralRules: false
+        stagingRepositories:
+          - build/staging-deploy

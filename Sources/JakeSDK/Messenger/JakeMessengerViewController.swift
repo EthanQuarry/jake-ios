@@ -146,7 +146,7 @@
     func webView(
       _: WKWebView,
       decidePolicyFor navigationAction: WKNavigationAction,
-      decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+      decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void
     ) {
       guard navigationAction.navigationType == .linkActivated,
         let url = navigationAction.request.url,

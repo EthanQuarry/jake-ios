@@ -34,6 +34,23 @@ Add this Swift package in Xcode. For the portable native experience, link:
 Link `JakeSupportAdapter` or `IntercomAdapter` only when you intentionally want that vendor's
 hosted Messenger UI.
 
+### Flutter and React Native
+
+The hosted Jake Messenger SDK is also exposed through:
+
+- [`packages/jake_flutter`](packages/jake_flutter) for Flutter on iOS and Android
+- [`packages/react-native-jake`](packages/react-native-jake) for React Native on iOS and Android
+- [`android/jake-sdk`](android/jake-sdk) for native Kotlin/Android applications
+
+All three integrations expose the same lifecycle: configure, authenticate with a short-lived
+customer token, present/dismiss, logout, analytics, user attributes, push tokens, unread count,
+authentication-expiry events, and errors. The Flutter and React Native packages bridge to this
+Swift SDK on iOS and the native Kotlin SDK on Android.
+
+The cross-platform packages currently wrap the hosted Messenger experience. The portable
+`SupportKitUI`/router channel remains a native Swift implementation; cross-platform native
+conversation widgets would be a separate UI layer over the documented router contract.
+
 ## Native channel with any agent
 
 ```swift
@@ -160,6 +177,8 @@ See [architecture](docs/architecture.md), [backend contract](docs/backend-contra
 ```bash
 swift test
 node --test Examples/SelectionServer/selection.test.mjs
+node scripts/validate-cross-platform.mjs
+(cd packages/react-native-jake && npm test)
 ```
 
 Requires iOS 15+, Swift 6, and Xcode 16+. MIT licensed; Jake's proprietary runtime is not included.

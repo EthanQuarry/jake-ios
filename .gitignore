@@ -6,3 +6,10 @@ DerivedData/
 Examples/SelectionServer/.env.local
 Examples/SelectionServer/.env
 .env
+**/.dart_tool/
+**/.gradle/
+**/build/
+**/node_modules/
+**/pubspec.lock
+*.tgz
+android/out/

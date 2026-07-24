@@ -1,0 +1,36 @@
+{
+  "name": "@tryjakeai/react-native",
+  "version": "0.1.0",
+  "description": "React Native bridge for Jake Messenger",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "react-native": "src/index.js",
+  "homepage": "https://tryjake.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EthanQuarry/jake-ios.git",
+    "directory": "packages/react-native-jake"
+  },
+  "bugs": {
+    "url": "https://github.com/EthanQuarry/jake-ios/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "src",
+    "ios",
+    "android",
+    "LICENSE",
+    "JakeReactNative.podspec",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-native": ">=0.72"
+  },
+  "license": "MIT"
+}
