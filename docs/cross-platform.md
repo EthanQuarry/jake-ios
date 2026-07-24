@@ -18,17 +18,65 @@ long-lived credentials never belong in a mobile bundle.
 
 | Consumer | Package | Native implementation |
 | --- | --- | --- |
-| Swift/iOS | `JakeSDK` Swift package or CocoaPod | `Sources/JakeSDK` |
-| Kotlin/Android | `ai.tryjake:jake-sdk:0.1.0` | `android/jake-sdk` |
-| Flutter | `jake_flutter` | `JakeSDK` on iOS, Kotlin SDK on Android |
-| React Native | `@tryjakeai/react-native` | `JakeSDK` on iOS, Kotlin SDK on Android |
+| Swift/iOS | `JakeSDK` Swift package or CocoaPod `0.1.0` | `Sources/JakeSDK` |
+| Kotlin/Android | Maven Central `ai.tryjake:jake-sdk:0.1.0` | `android/jake-sdk` |
+| Flutter | Git package `packages/jake_flutter` (not yet on pub.dev) | `JakeSDK` on iOS, Kotlin SDK on Android |
+| React Native | npm `@tryjakeai/react-native@0.1.0` | `JakeSDK` on iOS, Kotlin SDK on Android |
 
-The Android library is configured for Maven publication. During monorepo development, include
+The Android library is published on Maven Central. During monorepo development, include
 `:jake-sdk` in the Gradle build and both bridge packages will select the local project. Published
-bridge packages resolve the `ai.tryjake:jake-sdk` artifact.
+bridge packages resolve the `ai.tryjake:jake-sdk` artifact from Maven Central.
 
-The iOS bridge packages use CocoaPods and depend on the root `JakeSDK.podspec`. The Swift package
-remains available to native applications.
+The iOS bridge packages use CocoaPods and resolve the published `JakeSDK` pod. The Swift package
+remains available to native applications through the Git repository.
+
+## Installation
+
+### Swift Package Manager
+
+Add `https://github.com/EthanQuarry/jake-ios.git` in Xcode, select version `0.1.0` or later, and
+link the `JakeSDK` product.
+
+### CocoaPods
+
+```ruby
+pod 'JakeSDK', '~> 0.1'
+```
+
+### Android
+
+```kotlin
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("ai.tryjake:jake-sdk:0.1.0")
+}
+```
+
+### React Native
+
+```bash
+npm install @tryjakeai/react-native
+cd ios && pod install
+```
+
+The React Native public API is JavaScript with bundled TypeScript declarations in `src/index.d.ts`.
+It supports TypeScript consumers but is not currently authored or compiled from TypeScript.
+
+### Flutter
+
+Until the plugin is published on pub.dev, use its tagged Git package:
+
+```yaml
+dependencies:
+  jake_flutter:
+    git:
+      url: https://github.com/EthanQuarry/jake-ios.git
+      ref: 0.1.0
+      path: packages/jake_flutter
+```
 
 ## Push tokens
 

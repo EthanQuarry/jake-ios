@@ -18,8 +18,22 @@ registration tokens to `Jake.setPushToken`.
 The library uses encrypted shared preferences for the short-lived customer session and never puts
 the token into an Activity intent. Application secrets must remain on your backend.
 
-For local monorepo use, include `:jake-sdk` from this Gradle build. The library is configured for
-publication as `ai.tryjake:jake-sdk:0.1.0`.
+## Install from Maven Central
+
+Version `0.1.0` is published on
+[Maven Central](https://central.sonatype.com/artifact/ai.tryjake/jake-sdk/0.1.0).
+
+```kotlin
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("ai.tryjake:jake-sdk:0.1.0")
+}
+```
+
+For local monorepo use, include `:jake-sdk` from this Gradle build instead.
 
 ## Maven Central release
 

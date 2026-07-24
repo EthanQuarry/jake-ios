@@ -51,6 +51,61 @@ The cross-platform packages currently wrap the hosted Messenger experience. The 
 `SupportKitUI`/router channel remains a native Swift implementation; cross-platform native
 conversation widgets would be a separate UI layer over the documented router contract.
 
+### Install the hosted Messenger SDK
+
+Swift Package Manager:
+
+1. In Xcode, choose **File → Add Package Dependencies**.
+2. Enter `https://github.com/EthanQuarry/jake-ios.git`.
+3. Select version `0.1.0` or later and add the `JakeSDK` product.
+
+CocoaPods:
+
+```ruby
+pod 'JakeSDK', '~> 0.1'
+```
+
+Android:
+
+```kotlin
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("ai.tryjake:jake-sdk:0.1.0")
+}
+```
+
+React Native:
+
+```bash
+npm install @tryjakeai/react-native
+cd ios && pod install
+```
+
+The React Native package is implemented in JavaScript with bundled TypeScript declarations, so
+TypeScript applications receive type checking and editor completion without additional `@types`
+packages.
+
+The Flutter plugin is not on pub.dev yet. Install the tagged package directly from Git:
+
+```yaml
+dependencies:
+  jake_flutter:
+    git:
+      url: https://github.com/EthanQuarry/jake-ios.git
+      ref: 0.1.0
+      path: packages/jake_flutter
+```
+
+Published packages:
+
+- [React Native on npm](https://www.npmjs.com/package/@tryjakeai/react-native)
+- [JakeSDK on CocoaPods](https://cocoapods.org/pods/JakeSDK)
+- [SupportAdapterKit on CocoaPods](https://cocoapods.org/pods/SupportAdapterKit)
+- [Jake SDK for Android on Maven Central](https://central.sonatype.com/artifact/ai.tryjake/jake-sdk/0.1.0)
+
 ## Native channel with any agent
 
 ```swift
@@ -140,6 +195,11 @@ Jake.configure(
 try await Jake.authenticate(userId: currentUser.id, token: session.token)
 Jake.present()
 ```
+
+To run the included simulator app, open
+`Examples/JakeDemo/JakeDemo.xcodeproj`, select the `JakeDemo` scheme and an iOS Simulator, then
+press Run. Opening the repository's `Package.swift` directly exposes library and command-line
+schemes, but does not create an installable iOS app.
 
 The default Messenger URL is `https://widget.tryjake.ai/messenger`. `Jake.present()` mounts that
 hosted widget directly in a native sheet, so its branding, conversation UI, composer, and behavior

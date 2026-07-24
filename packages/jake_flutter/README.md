@@ -1,8 +1,14 @@
 # Jake for Flutter
 
+The plugin is not published on pub.dev yet. Install version `0.1.0` from the tagged Git repository:
+
 ```yaml
 dependencies:
-  jake_flutter: ^0.1.0
+  jake_flutter:
+    git:
+      url: https://github.com/EthanQuarry/jake-ios.git
+      ref: 0.1.0
+      path: packages/jake_flutter
 ```
 
 ```dart
@@ -23,5 +29,6 @@ final subscription = Jake.events.listen((event) {
 The token must come from your authenticated backend. Never put an application secret in the app.
 On iOS, pass the hexadecimal APNs device token to `setPushToken`; on Android, pass the FCM token.
 
-The plugin requires the `JakeSDK` CocoaPod and `ai.tryjake:jake-sdk` Android artifact. In this
-monorepo, Android builds can include the local `:jake-sdk` Gradle project instead.
+The plugin resolves the published `JakeSDK` CocoaPod on iOS and
+`ai.tryjake:jake-sdk:0.1.0` from Maven Central on Android. In this monorepo, Android builds can
+include the local `:jake-sdk` Gradle project instead.
