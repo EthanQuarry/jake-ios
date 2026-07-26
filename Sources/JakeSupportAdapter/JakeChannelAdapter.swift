@@ -6,6 +6,7 @@ import SupportKitCore
 public final class JakeChannelAdapter: SupportChannelAdapter, JakeDelegate {
   public let id: SupportChannelID
   public let displayName: String
+  public let aiDisclosure: String?
   public let capabilities = SupportChannelCapabilities(
     presentation: .opaqueVendorMessenger,
     programmaticMessaging: false,
@@ -20,11 +21,13 @@ public final class JakeChannelAdapter: SupportChannelAdapter, JakeDelegate {
   public init(
     configuration: JakeConfiguration,
     id: SupportChannelID = .jakeMessenger,
-    displayName: String = "Jake"
+    displayName: String = "Jake",
+    aiDisclosure: String? = "AI agent"
   ) {
     self.configuration = configuration
     self.id = id
     self.displayName = displayName
+    self.aiDisclosure = aiDisclosure
   }
 
   public func identify(_ session: SupportChannelSession) async throws {

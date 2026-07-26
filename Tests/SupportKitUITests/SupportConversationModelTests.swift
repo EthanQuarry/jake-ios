@@ -13,6 +13,7 @@ private final class ConversationChannel: SupportChannelAdapter {
 
   let id: SupportChannelID = .native
   let displayName = "Test"
+  let aiDisclosure: String? = "AI agent"
   let capabilities = SupportChannelCapabilities(
     presentation: .nativeRouterUI,
     programmaticMessaging: true,
@@ -38,6 +39,14 @@ private final class ConversationChannel: SupportChannelAdapter {
 }
 
 final class SupportConversationModelTests: XCTestCase {
+  @MainActor
+  func testExposesChannelIdentityAndAIDisclosure() {
+    let model = SupportConversationModel(channel: ConversationChannel())
+
+    XCTAssertEqual(model.channelName, "Test")
+    XCTAssertEqual(model.aiDisclosure, "AI agent")
+  }
+
   @MainActor
   func testSendsTrimmedDraftAndAddsOptimisticMessage() async {
     let channel = ConversationChannel()

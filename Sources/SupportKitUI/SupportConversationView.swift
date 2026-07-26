@@ -17,11 +17,15 @@
     @Published public private(set) var isSending = false
     @Published public private(set) var errorMessage: String?
     @Published public private(set) var failedDraft: String?
+    public let channelName: String
+    public let aiDisclosure: String?
 
     private let channel: any SupportChannelAdapter
 
     public init(channel: any SupportChannelAdapter) {
       self.channel = channel
+      channelName = channel.displayName
+      aiDisclosure = channel.aiDisclosure
       channel.delegate = self
     }
 
@@ -152,8 +156,16 @@
             .frame(width: 10, height: 10)
             .overlay(Circle().stroke(SupportPalette.background, lineWidth: 2))
         }
-        Text("Support")
-          .font(.system(size: 15, weight: .semibold))
+        VStack(alignment: .leading, spacing: 1) {
+          Text(model.channelName)
+            .font(.system(size: 15, weight: .semibold))
+          if let disclosure = model.aiDisclosure {
+            Text(disclosure)
+              .font(.system(size: 10, weight: .medium))
+              .foregroundStyle(.secondary)
+          }
+        }
+        .accessibilityElement(children: .combine)
         Spacer()
       }
       .padding(.horizontal, 16)

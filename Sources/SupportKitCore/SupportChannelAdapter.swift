@@ -55,6 +55,7 @@ public protocol SupportChannelAdapterDelegate: AnyObject {
 public protocol SupportChannelAdapter: AnyObject {
   var id: SupportChannelID { get }
   var displayName: String { get }
+  var aiDisclosure: String? { get }
   var capabilities: SupportChannelCapabilities { get }
   var delegate: (any SupportChannelAdapterDelegate)? { get set }
 
@@ -67,6 +68,8 @@ public protocol SupportChannelAdapter: AnyObject {
 }
 
 extension SupportChannelAdapter {
+  public var aiDisclosure: String? { nil }
+
   public func send(_: OutgoingSupportMessage, in _: String?) async throws {
     throw SupportChannelError.unsupported(channel: id, operation: "programmatic messaging")
   }

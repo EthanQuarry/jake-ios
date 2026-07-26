@@ -4,15 +4,18 @@ import SupportKitCore
 public struct SupportRouterConfiguration: Sendable {
   public let baseURL: URL
   public let agentProviderID: String
+  public let aiDisclosure: String?
   public let sessionToken: @MainActor @Sendable () async throws -> String
 
   public init(
     baseURL: URL,
     agentProviderID: String,
+    aiDisclosure: String? = "AI agent",
     sessionToken: @escaping @MainActor @Sendable () async throws -> String
   ) {
     self.baseURL = baseURL
     self.agentProviderID = agentProviderID
+    self.aiDisclosure = aiDisclosure
     self.sessionToken = sessionToken
   }
 }
@@ -21,6 +24,7 @@ public struct SupportRouterConfiguration: Sendable {
 public final class RouterChannelAdapter: SupportChannelAdapter {
   public let id: SupportChannelID
   public let displayName: String
+  public let aiDisclosure: String?
   public let capabilities = SupportChannelCapabilities(
     presentation: .nativeRouterUI,
     programmaticMessaging: true,
@@ -46,6 +50,7 @@ public final class RouterChannelAdapter: SupportChannelAdapter {
     self.configuration = configuration
     self.id = id
     self.displayName = displayName
+    self.aiDisclosure = configuration.aiDisclosure
     self.session = session
   }
 

@@ -139,6 +139,10 @@ let model = SupportConversationModel(channel: channel)
 let view = SupportConversationView(model: model)
 ```
 
+The native header shows the channel name with a quiet, persistent `AI agent` disclosure before the
+first message. Router channels use that disclosure by default. Pass `aiDisclosure: nil` to
+`SupportRouterConfiguration` only for a channel that never connects the customer to an AI system.
+
 For remote routing, call `SupportSelectionClient.select` first and pass its `agentProvider` into
 `SupportRouterConfiguration`. The selection endpoint derives rollout attributes server-side and
 returns both the visible channel and agent. Cache it only for `ttlSeconds`, and never apply a new
