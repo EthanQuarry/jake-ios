@@ -270,24 +270,51 @@
     private var composer: some View {
       HStack(alignment: .bottom, spacing: 8) {
         SupportComposerInput(text: $model.draft)
-        Button(action: model.send) {
-          Group {
-            if model.isSending {
-              ProgressView()
-            } else {
-              Image(systemName: "arrow.up")
-                .font(.body.weight(.semibold))
+        if model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+          HStack(spacing: 4) {
+            Button {
+            } label: {
+              Image(systemName: "paperclip")
+                .font(.system(size: 17, weight: .medium))
+                .frame(width: 36, height: 36)
+                .foregroundStyle(Color.secondary)
+                .background(Color.primary.opacity(0.06))
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Add attachment")
+            Button {
+            } label: {
+              Image(systemName: "face.smiling")
+                .font(.system(size: 17, weight: .medium))
+                .frame(width: 36, height: 36)
+                .foregroundStyle(Color.secondary)
+                .background(Color.primary.opacity(0.06))
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Add emoji")
           }
-          .frame(width: 44, height: 44)
-          .background(Color.accentColor)
-          .foregroundStyle(Color.white)
-          .clipShape(Circle())
+        } else {
+          Button(action: model.send) {
+            Group {
+              if model.isSending {
+                ProgressView()
+              } else {
+                Image(systemName: "arrow.up")
+                  .font(.body.weight(.semibold))
+              }
+            }
+            .frame(width: 36, height: 36)
+            .background(Color.accentColor)
+            .foregroundStyle(Color.white)
+            .clipShape(Circle())
+          }
+          .buttonStyle(.plain)
+          .disabled(!model.canSend)
+          .opacity(model.canSend || model.isSending ? 1 : 0.45)
+          .accessibilityLabel(model.isSending ? "Sending message" : "Send message")
         }
-        .buttonStyle(.plain)
-        .disabled(!model.canSend)
-        .opacity(model.canSend || model.isSending ? 1 : 0.45)
-        .accessibilityLabel(model.isSending ? "Sending message" : "Send message")
       }
       .padding(.horizontal, 16)
       .padding(.vertical, 12)
