@@ -207,7 +207,8 @@ schemes, but does not create an installable iOS app.
 
 The default Messenger URL is `https://widget.tryjake.ai/messenger`. `Jake.present()` mounts that
 hosted widget directly in a native sheet, so its branding, conversation UI, composer, and behavior
-stay aligned with the web widget.
+stay aligned with the web widget. Customers can use the native iOS keyboard for emoji and the
+system file picker for Messenger attachments; no separate app-side upload implementation is needed.
 
 For local simulator development, the example server includes a session-token bridge. It keeps the
 application secret on the Mac and returns only a short-lived customer session to the app:

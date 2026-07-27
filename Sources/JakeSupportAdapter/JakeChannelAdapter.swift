@@ -12,7 +12,7 @@ public final class JakeChannelAdapter: SupportChannelAdapter, JakeDelegate {
     programmaticMessaging: false,
     unreadCount: true,
     pushNotifications: true,
-    attachments: false,
+    attachments: true,
     externalAgentRouting: false
   )
   public weak var delegate: (any SupportChannelAdapterDelegate)?
