@@ -42,6 +42,7 @@ public enum SupportChannelEvent: Equatable, Sendable {
   case actionRequested(SupportActionRequest)
   case clarificationRequested(question: String, fields: [String])
   case handoffRequested(reason: String, targetHint: String?)
+  case agentTypingChanged(Bool)
   case authenticationExpired
   case failure(code: String, message: String)
 }

@@ -18,6 +18,7 @@
     @Published public private(set) var errorMessage: String?
     @Published public private(set) var failedDraft: String?
     @Published public private(set) var isHandedOff = false
+    @Published public private(set) var isAgentTyping = false
     public let channelName: String
     public let aiDisclosure: String?
 
@@ -155,6 +156,8 @@
         )
       case .handoffRequested:
         isHandedOff = true
+      case .agentTypingChanged(let typing):
+        isAgentTyping = typing
       case .failure(_, let message):
         errorMessage = message
       default:
@@ -222,26 +225,13 @@
         ScrollView {
           LazyVStack(spacing: 12) {
             ForEach(model.messages) { message in
-              HStack {
-                if message.role == .customer { Spacer(minLength: 44) }
-                Text(message.body)
-                  .font(.system(size: 15))
-                  .padding(.horizontal, 14)
-                  .padding(.vertical, 11)
-                  .background(
-                    message.role == .customer
-                      ? SupportPalette.customerBubble
-                      : SupportPalette.subtleSurface
-                  )
-                  .foregroundStyle(
-                    message.role == .customer
-                      ? SupportPalette.customerText
-                      : Color.primary
-                  )
-                  .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                if message.role != .customer { Spacer(minLength: 44) }
-              }
-              .id(message.id)
+              MessageRow(message: message)
+                .id(message.id)
+            }
+            if model.isAgentTyping {
+              TypingIndicatorRow()
+                .id("typing-indicator")
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
           }
           .padding(.horizontal, 16)
@@ -249,9 +239,14 @@
         }
         .background(SupportPalette.background)
         .supportKeyboardDismissal()
-        .onChange(of: model.messages.count) { _ in
+        .onChangeCompat(of: model.messages.count) {
           if let id = model.messages.last?.id {
             withAnimation { proxy.scrollTo(id, anchor: .bottom) }
+          }
+        }
+        .onChangeCompat(of: model.isAgentTyping) {
+          if model.isAgentTyping {
+            withAnimation { proxy.scrollTo("typing-indicator", anchor: .bottom) }
           }
         }
       }
@@ -423,6 +418,93 @@
     }
   }
 
+  private struct MessageRow: View {
+    let message: SupportMessage
+    @State private var showFullTimestamp = false
+    @State private var now = Date()
+
+    private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+
+    private var relativeTimestamp: String {
+      let formatter = RelativeDateTimeFormatter()
+      formatter.unitsStyle = .abbreviated
+      return formatter.localizedString(for: message.createdAt, relativeTo: now)
+    }
+
+    private var fullTimestamp: String {
+      let formatter = DateFormatter()
+      formatter.dateStyle = .medium
+      formatter.timeStyle = .short
+      return formatter.string(from: message.createdAt)
+    }
+
+    var body: some View {
+      VStack(alignment: message.role == .customer ? .trailing : .leading, spacing: 3) {
+        HStack {
+          if message.role == .customer { Spacer(minLength: 44) }
+          Text(message.body)
+            .font(.system(size: 15))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(
+              message.role == .customer
+                ? SupportPalette.customerBubble
+                : SupportPalette.subtleSurface
+            )
+            .foregroundStyle(
+              message.role == .customer
+                ? SupportPalette.customerText
+                : Color.primary
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .onLongPressGesture {
+              withAnimation { showFullTimestamp.toggle() }
+            }
+          if message.role != .customer { Spacer(minLength: 44) }
+        }
+        Text(showFullTimestamp ? fullTimestamp : relativeTimestamp)
+          .font(.system(size: 11))
+          .foregroundStyle(.tertiary)
+          .padding(.horizontal, 4)
+          .animation(.easeInOut(duration: 0.2), value: showFullTimestamp)
+      }
+      .onReceive(timer) { _ in now = Date() }
+    }
+  }
+
+  private struct TypingIndicatorRow: View {
+    @State private var phase: Double = 0
+
+    var body: some View {
+      HStack(alignment: .bottom, spacing: 0) {
+        HStack(spacing: 5) {
+          ForEach(0..<3, id: \.self) { index in
+            Circle()
+              .fill(Color.secondary.opacity(0.6))
+              .frame(width: 7, height: 7)
+              .scaleEffect(dotScale(for: index))
+              .animation(
+                .easeInOut(duration: 0.5)
+                  .repeatForever(autoreverses: true)
+                  .delay(Double(index) * 0.2),
+                value: phase
+              )
+          }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(SupportPalette.subtleSurface)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        Spacer(minLength: 44)
+      }
+      .onAppear { phase = 1 }
+    }
+
+    private func dotScale(for index: Int) -> CGFloat {
+      phase == 0 ? 1.0 : (index == 0 ? 0.5 : (index == 1 ? 0.65 : 0.5))
+    }
+  }
+
   private enum SupportPalette {
     static let subtleSurface = Color.primary.opacity(0.08)
     static let customerBubble = Color.primary
@@ -487,6 +569,19 @@
       #else
         self
       #endif
+    }
+
+    /// Two-argument onChange is only available on iOS 17+ / macOS 14+.
+    /// This helper normalises the call site without the old single-argument form.
+    @ViewBuilder
+    func onChangeCompat<V: Equatable>(of value: V, perform action: @escaping () -> Void)
+      -> some View
+    {
+      if #available(iOS 17.0, macOS 14.0, *) {
+        onChange(of: value) { _, _ in action() }
+      } else {
+        onChange(of: value) { _ in action() }
+      }
     }
   }
 
