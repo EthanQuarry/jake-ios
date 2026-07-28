@@ -63,6 +63,8 @@ public protocol SupportChannelAdapter: AnyObject {
   func present() async throws
   func dismiss() async
   func send(_ message: OutgoingSupportMessage, in conversationID: String?) async throws
+  func approveAction(_ actionID: String, in conversationID: String?) async throws
+  func denyAction(_ actionID: String, in conversationID: String?) async throws
   func setPushToken(_ token: Data) async throws
   func logout() async
 }
@@ -72,6 +74,14 @@ extension SupportChannelAdapter {
 
   public func send(_: OutgoingSupportMessage, in _: String?) async throws {
     throw SupportChannelError.unsupported(channel: id, operation: "programmatic messaging")
+  }
+
+  public func approveAction(_: String, in _: String?) async throws {
+    throw SupportChannelError.unsupported(channel: id, operation: "action approval")
+  }
+
+  public func denyAction(_: String, in _: String?) async throws {
+    throw SupportChannelError.unsupported(channel: id, operation: "action denial")
   }
 
   public func setPushToken(_: Data) async throws {

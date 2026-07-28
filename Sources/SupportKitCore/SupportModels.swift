@@ -204,14 +204,26 @@ public struct SupportCitation: Codable, Equatable, Identifiable, Sendable {
   }
 }
 
+public enum ActionDecision: String, Codable, Equatable, Sendable {
+  case approved
+  case denied
+}
+
 public struct SupportActionRequest: Codable, Equatable, Identifiable, Sendable {
   public let id: String
   public let name: String
   public let approvalRequired: Bool
+  public let decision: ActionDecision?
 
-  public init(id: String, name: String, approvalRequired: Bool) {
+  public init(id: String, name: String, approvalRequired: Bool, decision: ActionDecision? = nil) {
     self.id = id
     self.name = name
     self.approvalRequired = approvalRequired
+    self.decision = decision
+  }
+
+  public func withDecision(_ decision: ActionDecision) -> SupportActionRequest {
+    SupportActionRequest(
+      id: id, name: name, approvalRequired: approvalRequired, decision: decision)
   }
 }

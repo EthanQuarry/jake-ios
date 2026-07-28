@@ -103,6 +103,31 @@ public final class RouterChannelAdapter: SupportChannelAdapter {
     }
   }
 
+  public func approveAction(_ actionID: String, in conversationID: String?) async throws {
+    try await sendActionDecision(actionID: actionID, approved: true, in: conversationID)
+  }
+
+  public func denyAction(_ actionID: String, in conversationID: String?) async throws {
+    try await sendActionDecision(actionID: actionID, approved: false, in: conversationID)
+  }
+
+  private func sendActionDecision(
+    actionID: String, approved: Bool, in conversationID: String?
+  ) async throws {
+    guard let resolvedConversationID = conversationID ?? activeConversationID else {
+      throw SupportChannelError.noActiveSession
+    }
+    var request = try await authorizedRequest(
+      path: "/v1/router/conversations/\(resolvedConversationID)/action-approvals",
+      method: "POST"
+    )
+    request.httpBody = try JSONSerialization.data(
+      withJSONObject: ["actionId": actionID, "approved": approved]
+    )
+    let (_, response) = try await session.data(for: request)
+    try Self.requireSuccess(response)
+  }
+
   public func requestAgentHandoff(
     to targetProviderID: String,
     conversationID: String,

@@ -17,10 +17,12 @@
     @Published public private(set) var isSending = false
     @Published public private(set) var errorMessage: String?
     @Published public private(set) var failedDraft: String?
+    @Published public private(set) var isHandedOff = false
     public let channelName: String
     public let aiDisclosure: String?
 
     private let channel: any SupportChannelAdapter
+    private var activeConversationID: String?
 
     public init(channel: any SupportChannelAdapter) {
       self.channel = channel
@@ -47,6 +49,44 @@
     public func dismissError() {
       errorMessage = nil
       failedDraft = nil
+    }
+
+    public func approveAction(_ action: SupportActionRequest) {
+      guard action.decision == nil else { return }
+      updateActionDecision(action, decision: .approved)
+      Task {
+        do {
+          try await channel.approveAction(action.id, in: activeConversationID)
+        } catch {
+          revertActionDecision(action)
+          errorMessage = error.localizedDescription
+        }
+      }
+    }
+
+    public func denyAction(_ action: SupportActionRequest) {
+      guard action.decision == nil else { return }
+      updateActionDecision(action, decision: .denied)
+      Task {
+        do {
+          try await channel.denyAction(action.id, in: activeConversationID)
+        } catch {
+          revertActionDecision(action)
+          errorMessage = error.localizedDescription
+        }
+      }
+    }
+
+    private func updateActionDecision(_ action: SupportActionRequest, decision: ActionDecision) {
+      if let index = requestedActions.firstIndex(where: { $0.id == action.id }) {
+        requestedActions[index] = action.withDecision(decision)
+      }
+    }
+
+    private func revertActionDecision(_ action: SupportActionRequest) {
+      if let index = requestedActions.firstIndex(where: { $0.id == action.id }) {
+        requestedActions[index] = action
+      }
     }
 
     private func beginSend(_ body: String, clearingDraft: Bool) {
@@ -86,6 +126,8 @@
       didEmit event: SupportChannelEvent
     ) {
       switch event {
+      case .conversationStarted(let id):
+        activeConversationID = id
       case .messageReceived(let message):
         messages.removeAll { $0.id == message.id }
         messages.append(message)
@@ -111,8 +153,8 @@
             createdAt: Date()
           )
         )
-      case .handoffRequested(let reason, _):
-        errorMessage = reason
+      case .handoffRequested:
+        isHandedOff = true
       case .failure(_, let message):
         errorMessage = message
       default:
@@ -134,6 +176,7 @@
         conversation
         citations
         actionRequest
+        handedOffBanner
         sendError
         composer
       }
@@ -236,10 +279,68 @@
     @ViewBuilder
     private var actionRequest: some View {
       if let action = model.requestedActions.last, action.approvalRequired {
-        Text("Approval required: \(action.name)")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-          .padding(.horizontal)
+        VStack(spacing: 6) {
+          Text("Approval required: \(action.name)")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+          if let decision = action.decision {
+            HStack(spacing: 6) {
+              Image(systemName: decision == .approved ? "checkmark.circle.fill" : "xmark.circle.fill")
+                .foregroundStyle(decision == .approved ? Color.accentColor : Color.secondary)
+              Text(decision == .approved ? "Approved" : "Denied")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(decision == .approved ? Color.accentColor : Color.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+          } else {
+            HStack(spacing: 8) {
+              Button {
+                model.approveAction(action)
+              } label: {
+                Text("Approve")
+                  .font(.caption.weight(.semibold))
+                  .padding(.horizontal, 14)
+                  .padding(.vertical, 7)
+                  .background(Color.accentColor)
+                  .foregroundStyle(Color.white)
+                  .clipShape(Capsule())
+              }
+              .buttonStyle(.plain)
+              Button {
+                model.denyAction(action)
+              } label: {
+                Text("Deny")
+                  .font(.caption.weight(.semibold))
+                  .padding(.horizontal, 14)
+                  .padding(.vertical, 7)
+                  .background(.clear)
+                  .foregroundStyle(Color.secondary)
+                  .overlay(Capsule().stroke(Color.secondary.opacity(0.5), lineWidth: 1))
+              }
+              .buttonStyle(.plain)
+            }
+          }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+      }
+    }
+
+    @ViewBuilder
+    private var handedOffBanner: some View {
+      if model.isHandedOff {
+        HStack(spacing: 8) {
+          Image(systemName: "person.circle.fill")
+            .foregroundStyle(Color.secondary)
+          Text("You've been connected with our support team.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(SupportPalette.subtleSurface)
       }
     }
 
