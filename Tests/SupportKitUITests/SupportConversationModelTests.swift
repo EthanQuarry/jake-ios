@@ -1,4 +1,5 @@
 import SupportKitCore
+import SwiftUI
 import XCTest
 
 @testable import SupportKitUI
@@ -45,6 +46,30 @@ final class SupportConversationModelTests: XCTestCase {
 
     XCTAssertEqual(model.channelName, "Test")
     XCTAssertEqual(model.aiDisclosure, "AI agent")
+  }
+
+  @MainActor
+  func testAcceptsHostedWidgetBrandAndThemeContract() {
+    let model = SupportConversationModel(channel: ConversationChannel())
+    let branding = SupportConversationBranding(
+      assistantName: "  Acme Support  ",
+      assistantAvatarURL: URL(string: "https://cdn.example.test/avatar.png")
+    )
+    let theme = SupportConversationTheme(
+      accent: .blue,
+      accentForeground: .white,
+      background: .black,
+      surface: .gray,
+      text: .white
+    )
+
+    _ = SupportConversationView(model: model, branding: branding, theme: theme)
+
+    XCTAssertEqual(branding.assistantName, "Acme Support")
+    XCTAssertEqual(
+      branding.assistantAvatarURL,
+      URL(string: "https://cdn.example.test/avatar.png")
+    )
   }
 
   @MainActor

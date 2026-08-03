@@ -168,9 +168,17 @@
 
   public struct SupportConversationView: View {
     @ObservedObject private var model: SupportConversationModel
+    private let branding: SupportConversationBranding
+    private let theme: SupportConversationTheme
 
-    public init(model: SupportConversationModel) {
+    public init(
+      model: SupportConversationModel,
+      branding: SupportConversationBranding = .channel,
+      theme: SupportConversationTheme = .automatic
+    ) {
       self.model = model
+      self.branding = branding
+      self.theme = theme
     }
 
     public var body: some View {
@@ -183,41 +191,44 @@
         sendError
         composer
       }
-      .background(SupportPalette.background)
+      .background(theme.background)
+      .foregroundStyle(theme.text)
+      .tint(theme.accent)
     }
 
     private var header: some View {
       HStack(spacing: 10) {
         ZStack(alignment: .bottomTrailing) {
-          Circle()
-            .fill(SupportPalette.subtleSurface)
-            .frame(width: 34, height: 34)
-            .overlay {
-              Image(systemName: "bubble.left.and.bubble.right.fill")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.primary)
-            }
+          SupportAvatarView(
+            name: branding.assistantName ?? model.channelName,
+            avatarURL: branding.assistantAvatarURL,
+            theme: theme
+          )
+          .frame(width: 36, height: 36)
           Circle()
             .fill(Color.green)
             .frame(width: 10, height: 10)
-            .overlay(Circle().stroke(SupportPalette.background, lineWidth: 2))
+            .overlay(Circle().stroke(theme.surface, lineWidth: 2))
         }
         VStack(alignment: .leading, spacing: 1) {
-          Text(model.channelName)
+          Text(branding.assistantName ?? model.channelName)
             .font(.system(size: 15, weight: .semibold))
+            .foregroundStyle(theme.text)
           if let disclosure = model.aiDisclosure {
             Text(disclosure)
               .font(.system(size: 10, weight: .medium))
-              .foregroundStyle(.secondary)
+              .foregroundStyle(theme.secondaryText)
           }
         }
         .accessibilityElement(children: .combine)
         Spacer()
       }
       .padding(.horizontal, 16)
-      .padding(.vertical, 14)
-      .background(.regularMaterial)
-      .overlay(alignment: .bottom) { Divider() }
+      .padding(.vertical, 12)
+      .background(theme.surface)
+      .overlay(alignment: .bottom) {
+        Rectangle().fill(theme.line).frame(height: 1)
+      }
     }
 
     private var conversation: some View {
@@ -225,11 +236,11 @@
         ScrollView {
           LazyVStack(spacing: 12) {
             ForEach(model.messages) { message in
-              MessageRow(message: message)
+              MessageRow(message: message, theme: theme)
                 .id(message.id)
             }
             if model.isAgentTyping {
-              TypingIndicatorRow()
+              TypingIndicatorRow(theme: theme)
                 .id("typing-indicator")
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
@@ -237,7 +248,7 @@
           .padding(.horizontal, 16)
           .padding(.vertical, 18)
         }
-        .background(SupportPalette.background)
+        .background(theme.background)
         .supportKeyboardDismissal()
         .onChangeCompat(of: model.messages.count) {
           if let id = model.messages.last?.id {
@@ -259,14 +270,16 @@
           HStack {
             ForEach(model.citations) { citation in
               if let url = citation.url {
-                Link(citation.title, destination: url)
+                Link(destination: url) {
+                  CitationLabel(title: citation.title, theme: theme)
+                }
               } else {
-                Text(citation.title)
+                CitationLabel(title: citation.title, theme: theme)
               }
             }
           }
-          .font(.caption)
-          .padding(.horizontal)
+          .padding(.horizontal, 16)
+          .padding(.vertical, 8)
         }
       }
     }
@@ -276,16 +289,16 @@
       if let action = model.requestedActions.last, action.approvalRequired {
         VStack(spacing: 6) {
           Text("Approval required: \(action.name)")
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(theme.secondaryText)
             .frame(maxWidth: .infinity, alignment: .leading)
           if let decision = action.decision {
             HStack(spacing: 6) {
               Image(systemName: decision == .approved ? "checkmark.circle.fill" : "xmark.circle.fill")
-                .foregroundStyle(decision == .approved ? Color.accentColor : Color.secondary)
+                .foregroundStyle(decision == .approved ? theme.accent : theme.secondaryText)
               Text(decision == .approved ? "Approved" : "Denied")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(decision == .approved ? Color.accentColor : Color.secondary)
+                .foregroundStyle(decision == .approved ? theme.accent : theme.secondaryText)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
           } else {
@@ -297,8 +310,8 @@
                   .font(.caption.weight(.semibold))
                   .padding(.horizontal, 14)
                   .padding(.vertical, 7)
-                  .background(Color.accentColor)
-                  .foregroundStyle(Color.white)
+                  .background(theme.accent)
+                  .foregroundStyle(theme.accentForeground)
                   .clipShape(Capsule())
               }
               .buttonStyle(.plain)
@@ -310,15 +323,22 @@
                   .padding(.horizontal, 14)
                   .padding(.vertical, 7)
                   .background(.clear)
-                  .foregroundStyle(Color.secondary)
-                  .overlay(Capsule().stroke(Color.secondary.opacity(0.5), lineWidth: 1))
+                  .foregroundStyle(theme.secondaryText)
+                  .overlay(Capsule().stroke(theme.strongLine, lineWidth: 1))
               }
               .buttonStyle(.plain)
             }
           }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
+        .padding(12)
+        .background(theme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+          RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .stroke(theme.line, lineWidth: 1)
+        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
       }
     }
 
@@ -327,15 +347,15 @@
       if model.isHandedOff {
         HStack(spacing: 8) {
           Image(systemName: "person.circle.fill")
-            .foregroundStyle(Color.secondary)
+            .foregroundStyle(theme.secondaryText)
           Text("You've been connected with our support team.")
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(theme.secondaryText)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal)
+        .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(SupportPalette.subtleSurface)
+        .background(theme.surface)
       }
     }
 
@@ -358,24 +378,27 @@
           }
           .accessibilityLabel("Dismiss send error")
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Color.red.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
       }
     }
 
     private var composer: some View {
-      HStack(alignment: .bottom, spacing: 8) {
-        SupportComposerInput(text: $model.draft)
-        if model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-          HStack(spacing: 4) {
+      VStack(spacing: 6) {
+        SupportComposerInput(text: $model.draft, theme: theme)
+        HStack(spacing: 4) {
+          if model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             Button {
             } label: {
               Image(systemName: "paperclip")
                 .font(.system(size: 17, weight: .medium))
                 .frame(width: 36, height: 36)
-                .foregroundStyle(Color.secondary)
-                .background(Color.primary.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .foregroundStyle(theme.secondaryText)
+                .contentShape(Circle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Add attachment")
@@ -384,42 +407,57 @@
               Image(systemName: "face.smiling")
                 .font(.system(size: 17, weight: .medium))
                 .frame(width: 36, height: 36)
-                .foregroundStyle(Color.secondary)
-                .background(Color.primary.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .foregroundStyle(theme.secondaryText)
+                .contentShape(Circle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Add emoji")
           }
-        } else {
-          Button(action: model.send) {
-            Group {
-              if model.isSending {
-                ProgressView()
-              } else {
-                Image(systemName: "arrow.up")
-                  .font(.body.weight(.semibold))
+          Spacer(minLength: 8)
+          if !model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            Button(action: model.send) {
+              Group {
+                if model.isSending {
+                  ProgressView()
+                    .tint(theme.accentForeground)
+                } else {
+                  Image(systemName: "arrow.up")
+                    .font(.body.weight(.semibold))
+                }
               }
+              .frame(width: 36, height: 36)
+              .background(theme.accent)
+              .foregroundStyle(theme.accentForeground)
+              .clipShape(Circle())
             }
-            .frame(width: 36, height: 36)
-            .background(Color.accentColor)
-            .foregroundStyle(Color.white)
-            .clipShape(Circle())
+            .buttonStyle(.plain)
+            .disabled(!model.canSend)
+            .opacity(model.canSend || model.isSending ? 1 : 0.45)
+            .accessibilityLabel(model.isSending ? "Sending message" : "Send message")
           }
-          .buttonStyle(.plain)
-          .disabled(!model.canSend)
-          .opacity(model.canSend || model.isSending ? 1 : 0.45)
-          .accessibilityLabel(model.isSending ? "Sending message" : "Send message")
         }
       }
-      .padding(.horizontal, 16)
-      .padding(.vertical, 12)
-      .background(.regularMaterial)
+      .padding(.top, 9)
+      .padding(.leading, 13)
+      .padding(.trailing, 9)
+      .padding(.bottom, 8)
+      .frame(minHeight: 84)
+      .background(theme.surface)
+      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+      .overlay(
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
+          .stroke(theme.strongLine, lineWidth: 1)
+      )
+      .padding(.horizontal, 12)
+      .padding(.top, 10)
+      .padding(.bottom, 12)
+      .background(theme.background)
     }
   }
 
   private struct MessageRow: View {
     let message: SupportMessage
+    let theme: SupportConversationTheme
     @State private var showFullTimestamp = false
     @State private var now = Date()
 
@@ -448,15 +486,19 @@
             .padding(.vertical, 11)
             .background(
               message.role == .customer
-                ? SupportPalette.customerBubble
-                : SupportPalette.subtleSurface
+                ? theme.accent
+                : theme.surface
             )
             .foregroundStyle(
               message.role == .customer
-                ? SupportPalette.customerText
-                : Color.primary
+                ? theme.accentForeground
+                : theme.text
             )
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+              RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(message.role == .customer ? Color.clear : theme.line, lineWidth: 1)
+            )
             .onLongPressGesture {
               withAnimation { showFullTimestamp.toggle() }
             }
@@ -464,7 +506,7 @@
         }
         Text(showFullTimestamp ? fullTimestamp : relativeTimestamp)
           .font(.system(size: 11))
-          .foregroundStyle(.tertiary)
+          .foregroundStyle(theme.tertiaryText)
           .padding(.horizontal, 4)
           .animation(.easeInOut(duration: 0.2), value: showFullTimestamp)
       }
@@ -473,6 +515,7 @@
   }
 
   private struct TypingIndicatorRow: View {
+    let theme: SupportConversationTheme
     @State private var phase: Double = 0
 
     var body: some View {
@@ -480,7 +523,7 @@
         HStack(spacing: 5) {
           ForEach(0..<3, id: \.self) { index in
             Circle()
-              .fill(Color.secondary.opacity(0.6))
+              .fill(theme.secondaryText)
               .frame(width: 7, height: 7)
               .scaleEffect(dotScale(for: index))
               .animation(
@@ -493,8 +536,12 @@
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(SupportPalette.subtleSurface)
+        .background(theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+          RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .stroke(theme.line, lineWidth: 1)
+        )
         Spacer(minLength: 44)
       }
       .onAppear { phase = 1 }
@@ -505,55 +552,92 @@
     }
   }
 
-  private enum SupportPalette {
-    static let subtleSurface = Color.primary.opacity(0.08)
-    static let customerBubble = Color.primary
-
-    static var background: Color {
-      #if canImport(UIKit)
-        Color(uiColor: .systemBackground)
-      #elseif canImport(AppKit)
-        Color(nsColor: .windowBackgroundColor)
-      #else
-        Color.white
-      #endif
-    }
-
-    static var customerText: Color {
-      background
-    }
-  }
-
   private struct SupportComposerInput: View {
     @Binding var text: String
+    let theme: SupportConversationTheme
 
     var body: some View {
       ZStack(alignment: .topLeading) {
         if text.isEmpty {
           Text("Message support")
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 11)
+            .foregroundStyle(theme.tertiaryText)
+            .padding(.horizontal, 1)
+            .padding(.vertical, 3)
             .accessibilityHidden(true)
         }
         #if canImport(UIKit)
-          GrowingTextView(text: $text)
-            .frame(minHeight: 44, maxHeight: 132)
+          GrowingTextView(text: $text, foregroundColor: theme.text)
+            .frame(minHeight: 28, maxHeight: 132)
         #else
           TextField("Message support", text: $text, axis: .vertical)
             .lineLimit(1...6)
             .textFieldStyle(.plain)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .foregroundStyle(theme.text)
+            .padding(.vertical, 2)
         #endif
       }
-      .background(SupportPalette.subtleSurface)
-      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-      .overlay(
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-          .stroke(Color.secondary.opacity(0.22), lineWidth: 1)
-      )
       .accessibilityLabel("Message support")
+    }
+  }
+
+  private struct CitationLabel: View {
+    let title: String
+    let theme: SupportConversationTheme
+
+    var body: some View {
+      HStack(spacing: 6) {
+        Image(systemName: "doc.text")
+        Text(title).lineLimit(1)
+      }
+      .font(.caption)
+      .foregroundStyle(theme.text)
+      .padding(.horizontal, 10)
+      .padding(.vertical, 7)
+      .background(theme.surface)
+      .clipShape(Capsule())
+      .overlay(Capsule().stroke(theme.line, lineWidth: 1))
+    }
+  }
+
+  private struct SupportAvatarView: View {
+    let name: String
+    let avatarURL: URL?
+    let theme: SupportConversationTheme
+
+    private var initials: String {
+      name.split(separator: " ")
+        .prefix(2)
+        .compactMap(\.first)
+        .map(String.init)
+        .joined()
+        .uppercased()
+    }
+
+    var body: some View {
+      ZStack {
+        Circle().fill(theme.accent)
+        if let avatarURL {
+          AsyncImage(url: avatarURL) { phase in
+            switch phase {
+            case .success(let image):
+              image.resizable().scaledToFill()
+            default:
+              fallback
+            }
+          }
+        } else {
+          fallback
+        }
+      }
+      .clipShape(Circle())
+      .overlay(Circle().stroke(theme.strongLine, lineWidth: 1))
+      .accessibilityLabel(name)
+    }
+
+    private var fallback: some View {
+      Text(initials.isEmpty ? "?" : initials)
+        .font(.system(size: 12, weight: .bold, design: .rounded))
+        .foregroundStyle(theme.accentForeground)
     }
   }
 
@@ -588,6 +672,7 @@
   #if canImport(UIKit)
     private struct GrowingTextView: UIViewRepresentable {
       @Binding var text: String
+      let foregroundColor: Color
 
       func makeCoordinator() -> Coordinator {
         Coordinator(text: $text)
@@ -597,9 +682,10 @@
         let textView = IntrinsicTextView()
         textView.delegate = context.coordinator
         textView.backgroundColor = .clear
+        textView.textColor = UIColor(foregroundColor)
         textView.font = .preferredFont(forTextStyle: .body)
         textView.adjustsFontForContentSizeCategory = true
-        textView.textContainerInset = UIEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+        textView.textContainerInset = UIEdgeInsets(top: 2, left: 0, bottom: 2, right: 0)
         textView.textContainer.lineFragmentPadding = 0
         textView.keyboardDismissMode = .interactive
         textView.returnKeyType = .default
@@ -612,6 +698,7 @@
 
       func updateUIView(_ textView: IntrinsicTextView, context: Context) {
         context.coordinator.text = $text
+        textView.textColor = UIColor(foregroundColor)
         if textView.text != text {
           textView.text = text
           textView.invalidateIntrinsicContentSize()
@@ -634,7 +721,7 @@
 
     @MainActor
     private final class IntrinsicTextView: UITextView {
-      private let minimumHeight: CGFloat = 44
+      private let minimumHeight: CGFloat = 28
       private let maximumHeight: CGFloat = 132
       private var isUpdatingScrollState = false
 

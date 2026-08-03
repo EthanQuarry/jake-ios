@@ -112,6 +112,7 @@ Published packages:
 import CustomAgentAdapter
 import SupportKitCore
 import SupportKitUI
+import SwiftUI
 
 let channel = RouterChannelAdapter(
   configuration: SupportRouterConfiguration(
@@ -136,8 +137,26 @@ try await coordinator.startSession(
 )
 
 let model = SupportConversationModel(channel: channel)
-let view = SupportConversationView(model: model)
+let view = SupportConversationView(
+  model: model,
+  branding: SupportConversationBranding(
+    assistantName: "Acme Support",
+    assistantAvatarURL: URL(string: "https://cdn.example.com/support-avatar.png")
+  ),
+  theme: SupportConversationTheme(
+    accent: Color(red: 0.11, green: 0.24, blue: 0.72),
+    accentForeground: .white,
+    background: Color(red: 0.97, green: 0.97, blue: 0.98),
+    surface: .white,
+    text: Color(red: 0.09, green: 0.09, blue: 0.11)
+  )
+)
 ```
+
+`SupportConversationTheme` mirrors the hosted widget's `accent`, `background`, `surface`, and
+`text` presentation values. `accentForeground` lets an application guarantee readable text and
+icons on its accent color. Omit `branding` and `theme` to use the selected channel's identity and
+system-aware colors.
 
 The native header shows the channel name with a quiet, persistent `AI agent` disclosure before the
 first message. Router channels use that disclosure by default. Pass `aiDisclosure: nil` to
@@ -207,8 +226,9 @@ schemes, but does not create an installable iOS app.
 
 The default Messenger URL is `https://widget.tryjake.ai/messenger`. `Jake.present()` mounts that
 hosted widget directly in a native sheet, so its branding, conversation UI, composer, and behavior
-stay aligned with the web widget. Customers can use the native iOS keyboard for emoji and the
-system file picker for Messenger attachments; no separate app-side upload implementation is needed.
+stay aligned with the web widget. Authenticated iOS sessions open directly in Messenger without the
+web Home/Help navigation. Customers can use the native iOS keyboard for emoji and the system file
+picker for Messenger attachments; no separate app-side upload implementation is needed.
 
 For local simulator development, the example server includes a session-token bridge. It keeps the
 application secret on the Mac and returns only a short-lived customer session to the app:
