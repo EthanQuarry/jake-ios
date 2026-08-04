@@ -2,6 +2,7 @@ import XCTest
 
 @testable import JakeSupport
 
+@MainActor
 final class JakeSupportConfigurationTests: XCTestCase {
   func testConfigurationTrimsValues() throws {
     let configuration = try JakeSupportRuntimeConfiguration(
@@ -47,5 +48,20 @@ final class JakeSupportConfigurationTests: XCTestCase {
         messengerURL: URL(string: "http://localhost:3001/messenger")!
       )
     )
+  }
+
+  func testLoginRequiresTheSecureIntercomFallbackCredential() async {
+    do {
+      try await JakeSupport.login(
+        user: JakeSupportUser(id: "customer-1"),
+        tokens: JakeSupportTokens(jake: "jake-token", intercom: "   ")
+      )
+      XCTFail("Expected an empty Intercom JWT to be rejected")
+    } catch {
+      XCTAssertEqual(
+        error as? JakeSupportError,
+        .invalidConfiguration("The Intercom user JWT cannot be empty.")
+      )
+    }
   }
 }

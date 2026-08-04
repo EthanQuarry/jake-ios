@@ -29,11 +29,11 @@ public struct JakeSupportUser: Equatable, Sendable {
 
 public struct JakeSupportTokens: Equatable, Sendable {
   public let jake: String
-  public let intercom: String?
+  public let intercom: String
 
-  public init(jake: String, intercom: String? = nil) {
+  public init(jake: String, intercom: String) {
     self.jake = jake.trimmingCharacters(in: .whitespacesAndNewlines)
-    self.intercom = intercom?.trimmingCharacters(in: .whitespacesAndNewlines)
+    self.intercom = intercom.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 }
 
@@ -96,6 +96,9 @@ public enum JakeSupport {
     }
     guard !tokens.jake.isEmpty else {
       throw JakeSupportError.invalidConfiguration("The Jake session token cannot be empty.")
+    }
+    guard !tokens.intercom.isEmpty else {
+      throw JakeSupportError.invalidConfiguration("The Intercom user JWT cannot be empty.")
     }
 
     #if canImport(UIKit)
@@ -239,12 +242,10 @@ struct JakeSupportRuntimeConfiguration: Equatable, Sendable {
         try coordinator.selectProvider(.intercom)
       }
 
-      var credentials: [SupportProviderID: SupportCredential] = [
-        .jake: SupportCredential(token: tokens.jake)
+      let credentials: [SupportProviderID: SupportCredential] = [
+        .jake: SupportCredential(token: tokens.jake),
+        .intercom: SupportCredential(token: tokens.intercom),
       ]
-      if let intercom = tokens.intercom, !intercom.isEmpty {
-        credentials[.intercom] = SupportCredential(token: intercom)
-      }
 
       try await coordinator.startSession(
         SupportSession(
