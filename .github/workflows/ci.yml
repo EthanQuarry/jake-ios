@@ -23,6 +23,7 @@ jobs:
           xcodebuild -scheme IntercomAdapter -destination 'generic/platform=iOS Simulator' build
           xcodebuild -scheme JakeSDK -destination 'generic/platform=iOS Simulator' build
           xcodebuild -scheme IntercomSupportAdapter -destination 'generic/platform=iOS Simulator' build
+          xcodebuild -scheme JakeSupport -destination 'generic/platform=iOS Simulator' build
       - name: Run lifecycle example
         run: swift run SupportSwitcherExample jake
 

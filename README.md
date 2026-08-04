@@ -34,6 +34,49 @@ Add this Swift package in Xcode. For the portable native experience, link:
 Link `JakeSupportAdapter` or `IntercomAdapter` only when you intentionally want that vendor's
 hosted Messenger UI.
 
+## Gradual migration from Intercom
+
+Link the `JakeSupport` product when an existing app needs Jake and Intercom behind one small API.
+The server chooses the provider for each customer. The SDK keeps that choice pinned for the active
+session and falls back to Intercom if selection is temporarily unavailable.
+
+```swift
+import JakeSupport
+
+try JakeSupport.configure(
+  workspaceId: "workspace_123",
+  publicKey: "jake_pk_123",
+  intercom: .init(apiKey: "ios_sdk-...", appId: "abc123")
+)
+
+let session = try await FirstyAPI.createSupportSession()
+
+try await JakeSupport.login(
+  user: .init(id: currentUser.id, name: currentUser.displayName),
+  tokens: .init(
+    jake: session.jakeToken,
+    intercom: session.intercomJWT
+  )
+)
+
+try await JakeSupport.present()
+```
+
+Forward the APNs token to whichever provider the server selected:
+
+```swift
+try await JakeSupport.setDeviceToken(deviceToken)
+```
+
+End the support session when the application user signs out:
+
+```swift
+await JakeSupport.logout()
+```
+
+Both tokens must come from the application's authenticated backend. Do not put Jake secrets or
+Intercom identity-verification secrets in the iOS application.
+
 ### Flutter and React Native
 
 The hosted Jake Messenger SDK is also exposed through:

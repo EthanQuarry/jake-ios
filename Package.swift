@@ -17,6 +17,7 @@ let package = Package(
     .library(name: "SupportAdapterKit", targets: ["SupportAdapterKit"]),
     .library(name: "JakeSDK", targets: ["JakeSDK"]),
     .library(name: "IntercomSupportAdapter", targets: ["IntercomSupportAdapter"]),
+    .library(name: "JakeSupport", targets: ["JakeSupport"]),
     .executable(name: "SupportSwitcherExample", targets: ["SupportSwitcherExample"]),
   ],
   dependencies: [
@@ -46,6 +47,10 @@ let package = Package(
         .product(name: "Intercom", package: "intercom-ios-sp"),
       ]
     ),
+    .target(
+      name: "JakeSupport",
+      dependencies: ["SupportAdapterKit", "JakeSDK", "IntercomSupportAdapter"]
+    ),
     .executableTarget(
       name: "SupportSwitcherExample",
       dependencies: ["SupportAdapterKit"],
@@ -55,5 +60,6 @@ let package = Package(
     .testTarget(name: "SupportKitCoreTests", dependencies: ["SupportKitCore"]),
     .testTarget(name: "SupportKitUITests", dependencies: ["SupportKitUI", "SupportKitCore"]),
     .testTarget(name: "JakeSDKTests", dependencies: ["JakeSDK", "SupportAdapterKit"]),
+    .testTarget(name: "JakeSupportTests", dependencies: ["JakeSupport"]),
   ]
 )
