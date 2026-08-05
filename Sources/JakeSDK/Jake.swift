@@ -18,13 +18,13 @@ public enum Jake {
   public static func configure(
     workspaceId: String,
     publicKey: String,
-    messengerURL: URL = JakeConfiguration.hostedMessengerURL
+    conversationAPIURL: URL = JakeConfiguration.hostedConversationAPIURL
   ) {
     client.configure(
       JakeConfiguration(
         workspaceId: workspaceId,
         publicKey: publicKey,
-        messengerURL: messengerURL
+        conversationAPIURL: conversationAPIURL
       )
     )
   }
@@ -34,12 +34,12 @@ public enum Jake {
   public static func configureMessenger(
     workspaceId: String,
     publicKey: String,
-    messengerURL: URL = JakeConfiguration.hostedMessengerURL
+    conversationAPIURL: URL = JakeConfiguration.hostedConversationAPIURL
   ) throws {
     let configuration = JakeConfiguration(
       workspaceId: workspaceId,
       publicKey: publicKey,
-      messengerURL: messengerURL
+      conversationAPIURL: conversationAPIURL
     )
     try configuration.validate()
     client.configure(configuration)

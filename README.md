@@ -246,10 +246,9 @@ Intercom works the same way with `IntercomChannelAdapter`. Supply only short-liv
 JWTs from your backend. Never ship a Jake secret, Intercom API secret, Fin access token, MCP token,
 or provider signing key in the application.
 
-## Hosted widget in Xcode
+## Native widget in Xcode
 
-Use `JakeSDK` when the iOS experience must be the production web widget rather than a SwiftUI
-recreation:
+`JakeSDK` uses the native SwiftUI conversation UI only.
 
 ```swift
 import JakeSDK
@@ -267,11 +266,9 @@ To run the included simulator app, open
 press Run. Opening the repository's `Package.swift` directly exposes library and command-line
 schemes, but does not create an installable iOS app.
 
-The default Messenger URL is `https://widget.tryjake.ai/messenger`. `Jake.present()` mounts that
-hosted widget directly in a native sheet, so its branding, conversation UI, composer, and behavior
-stay aligned with the web widget. Authenticated iOS sessions open directly in Messenger without the
-web Home/Help navigation. Customers can use the native iOS keyboard for emoji and the system file
-picker for Messenger attachments; no separate app-side upload implementation is needed.
+Use `conversationAPIURL` to point to a custom router/API host. Authenticated iOS sessions open directly
+in the native support UI. Customers can use the native iOS keyboard for emoji and the system file picker
+for attachments; no separate app-side upload implementation is needed.
 
 For local simulator development, the example server includes a session-token bridge. It keeps the
 application secret on the Mac and returns only a short-lived customer session to the app:

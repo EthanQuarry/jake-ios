@@ -132,8 +132,8 @@ public final class JakeFlutterPlugin: NSObject, FlutterPlugin, FlutterStreamHand
         "workspaceId and publicKey are required."
       )
     }
-    let messengerURL: URL
-    if let value = arguments["messengerUrl"] as? String {
+    let conversationAPIURL: URL
+    if let value = arguments["conversationApiUrl"] as? String {
       guard
         let parsed = URL(string: value),
         let scheme = parsed.scheme?.lowercased(),
@@ -141,17 +141,17 @@ public final class JakeFlutterPlugin: NSObject, FlutterPlugin, FlutterStreamHand
       else {
         throw BridgeError(
           "invalid_configuration",
-          "messengerUrl must use HTTP or HTTPS."
+          "conversationApiUrl must use HTTP or HTTPS."
         )
       }
-      messengerURL = parsed
+      conversationAPIURL = parsed
     } else {
-      messengerURL = JakeConfiguration.hostedMessengerURL
+      conversationAPIURL = JakeConfiguration.hostedConversationAPIURL
     }
     try Jake.configureMessenger(
       workspaceId: workspaceId,
       publicKey: publicKey,
-      messengerURL: messengerURL
+      conversationAPIURL: conversationAPIURL
     )
   }
 
@@ -191,6 +191,7 @@ private extension JakeError {
     case .invalidConfiguration: "invalid_configuration"
     case .invalidAuthentication: "invalid_authentication"
     case .authenticationRequired: "authentication_required"
+    case .authenticationExpired: "authentication_expired"
     case .tokenStorageFailed: "token_storage_failed"
     case .presentationUnavailable: "presentation_unavailable"
     case .messengerLoadFailed: "messenger_load_failed"

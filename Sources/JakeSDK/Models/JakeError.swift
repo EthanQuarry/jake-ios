@@ -5,6 +5,7 @@ public enum JakeError: LocalizedError, Equatable, Sendable {
   case invalidConfiguration(String)
   case invalidAuthentication(String)
   case authenticationRequired
+  case authenticationExpired
   case tokenStorageFailed
   case presentationUnavailable
   case messengerLoadFailed(String)
@@ -17,6 +18,8 @@ public enum JakeError: LocalizedError, Equatable, Sendable {
       return message
     case .authenticationRequired:
       return "Authenticate a user before presenting Jake Messenger."
+    case .authenticationExpired:
+      return "The current Jake session has expired. Authenticate again."
     case .tokenStorageFailed:
       return "Jake could not securely store the user session."
     case .presentationUnavailable:

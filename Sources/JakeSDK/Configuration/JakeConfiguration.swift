@@ -1,20 +1,20 @@
 import Foundation
 
 public struct JakeConfiguration: Equatable, Sendable {
-  public static let hostedMessengerURL = URL(string: "https://widget.tryjake.ai/messenger")!
+  public static let hostedConversationAPIURL = URL(string: "https://app.tryjake.ai")!
 
   public let workspaceId: String
   public let publicKey: String
-  public let messengerURL: URL
+  public let conversationAPIURL: URL
 
   public init(
     workspaceId: String,
     publicKey: String,
-    messengerURL: URL = Self.hostedMessengerURL
+    conversationAPIURL: URL = Self.hostedConversationAPIURL
   ) {
     self.workspaceId = workspaceId.trimmingCharacters(in: .whitespacesAndNewlines)
     self.publicKey = publicKey.trimmingCharacters(in: .whitespacesAndNewlines)
-    self.messengerURL = messengerURL
+    self.conversationAPIURL = conversationAPIURL
   }
 
   func validate() throws {
@@ -24,12 +24,15 @@ public struct JakeConfiguration: Equatable, Sendable {
     guard !publicKey.isEmpty else {
       throw JakeError.invalidConfiguration("Jake publicKey cannot be empty.")
     }
-    guard let scheme = messengerURL.scheme?.lowercased(), ["https", "http"].contains(scheme) else {
-      throw JakeError.invalidConfiguration("Jake messengerURL must use HTTP or HTTPS.")
+    guard let apiScheme = conversationAPIURL.scheme?.lowercased(),
+          ["https", "http"].contains(apiScheme) else {
+      throw JakeError.invalidConfiguration("Jake conversationAPIURL must use HTTP or HTTPS.")
     }
     #if !DEBUG
-      guard messengerURL.scheme?.lowercased() == "https" else {
-        throw JakeError.invalidConfiguration("Jake messengerURL must use HTTPS in release builds.")
+      guard conversationAPIURL.scheme?.lowercased() == "https" else {
+        throw JakeError.invalidConfiguration(
+          "Jake conversationAPIURL must use HTTPS in release builds."
+        )
       }
     #endif
   }

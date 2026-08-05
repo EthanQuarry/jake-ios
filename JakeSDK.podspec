@@ -10,5 +10,8 @@ Pod::Spec.new do |spec|
   spec.swift_version = "6.0"
   spec.source_files = "Sources/JakeSDK/**/*.swift"
   spec.dependency "SupportAdapterKit", "~> 0.1"
-  spec.frameworks = ["Security", "UIKit", "WebKit"]
+  spec.dependency "SupportKitCore", "~> 0.1"
+  spec.dependency "SupportKitUI", "~> 0.1"
+  spec.dependency "CustomAgentAdapter", "~> 0.1"
+  spec.frameworks = ["Security", "UIKit"]
 end

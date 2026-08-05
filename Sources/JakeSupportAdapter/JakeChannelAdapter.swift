@@ -37,7 +37,7 @@ public final class JakeChannelAdapter: SupportChannelAdapter, JakeDelegate {
     Jake.configure(
       workspaceId: configuration.workspaceId,
       publicKey: configuration.publicKey,
-      messengerURL: configuration.messengerURL
+      conversationAPIURL: configuration.conversationAPIURL
     )
     Jake.delegate = self
     try await Jake.authenticate(userId: session.customer.externalID, token: token)

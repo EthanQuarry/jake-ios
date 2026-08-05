@@ -34,7 +34,7 @@ public final class JakeSupportProvider: SupportProvider, JakeDelegate {
     Jake.configure(
       workspaceId: configuration.workspaceId,
       publicKey: configuration.publicKey,
-      messengerURL: configuration.messengerURL
+      conversationAPIURL: configuration.conversationAPIURL
     )
     Jake.delegate = self
     try await Jake.authenticate(userId: session.user.id, token: token)
@@ -115,6 +115,7 @@ public final class JakeSupportProvider: SupportProvider, JakeDelegate {
     case .invalidConfiguration: "invalid_configuration"
     case .invalidAuthentication: "invalid_authentication"
     case .authenticationRequired: "authentication_required"
+    case .authenticationExpired: "authentication_expired"
     case .tokenStorageFailed: "token_storage_failed"
     case .presentationUnavailable: "presentation_unavailable"
     case .messengerLoadFailed: "messenger_load_failed"

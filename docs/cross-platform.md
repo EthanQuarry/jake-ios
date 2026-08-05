@@ -4,7 +4,7 @@
 
 Swift, Kotlin, Flutter, and React Native expose:
 
-- `configure(workspaceId, publicKey, messengerUrl?)`
+- `configure(workspaceId, publicKey, conversationApiUrl?)`
 - `authenticate(userId, shortLivedToken)`
 - `present`, `dismiss`, and `logout`
 - `track`, `setUserAttributes`, and `setPushToken`

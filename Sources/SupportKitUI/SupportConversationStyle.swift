@@ -36,7 +36,7 @@
     /// A system-aware theme for applications that have not supplied customer branding.
     public static var automatic: SupportConversationTheme {
       SupportConversationTheme(
-        accent: .accentColor,
+        accent: SupportSystemColors.darkAccent,
         background: SupportSystemColors.background,
         surface: SupportSystemColors.surface,
         text: .primary
@@ -48,6 +48,40 @@
     var line: Color { text.opacity(0.14) }
     var strongLine: Color { text.opacity(0.22) }
     var mutedSurface: Color { text.opacity(0.07) }
+
+    /// Dark fill for customer message bubbles.
+    var customerBubble: Color {
+      #if canImport(UIKit)
+        Color(uiColor: UIColor { traits in
+          if traits.userInterfaceStyle == .dark {
+            return UIColor(white: 0.22, alpha: 1)
+          } else {
+            return UIColor(white: 0.16, alpha: 1)
+          }
+        })
+      #elseif canImport(AppKit)
+        Color(nsColor: .controlTextColor)
+      #else
+        Color.black.opacity(0.84)
+      #endif
+    }
+
+    /// Subtle warm fill for agent message bubbles.
+    var agentBubble: Color {
+      #if canImport(UIKit)
+        Color(uiColor: UIColor { traits in
+          if traits.userInterfaceStyle == .dark {
+            return .tertiarySystemBackground
+          } else {
+            return UIColor(red: 247 / 255.0, green: 245 / 255.0, blue: 241 / 255.0, alpha: 1)
+          }
+        })
+      #elseif canImport(AppKit)
+        Color(nsColor: .controlBackgroundColor)
+      #else
+        Color(red: 247 / 255.0, green: 245 / 255.0, blue: 241 / 255.0)
+      #endif
+    }
   }
 
   /// Optional identity overrides for the native Messenger header.
@@ -67,6 +101,22 @@
   }
 
   private enum SupportSystemColors {
+    static var darkAccent: Color {
+      #if canImport(UIKit)
+        Color(uiColor: UIColor { traits in
+          if traits.userInterfaceStyle == .dark {
+            return .white
+          } else {
+            return UIColor(white: 0.16, alpha: 1)
+          }
+        })
+      #elseif canImport(AppKit)
+        Color(nsColor: .controlTextColor)
+      #else
+        Color(white: 0.16)
+      #endif
+    }
+
     static var background: Color {
       #if canImport(UIKit)
         Color(uiColor: .systemBackground)

@@ -69,14 +69,14 @@ public enum JakeSupport {
     publicKey: String,
     intercom: JakeSupportIntercomConfiguration,
     selectionEndpoint: URL = defaultSelectionEndpoint,
-    messengerURL: URL = JakeConfiguration.hostedMessengerURL
+    conversationAPIURL: URL = JakeConfiguration.hostedConversationAPIURL
   ) throws {
     let configuration = try JakeSupportRuntimeConfiguration(
       workspaceId: workspaceId,
       publicKey: publicKey,
       intercom: intercom,
       selectionEndpoint: selectionEndpoint,
-      messengerURL: messengerURL
+      conversationAPIURL: conversationAPIURL
     )
 
     #if canImport(UIKit)
@@ -145,14 +145,14 @@ struct JakeSupportRuntimeConfiguration: Equatable, Sendable {
   let publicKey: String
   let intercom: JakeSupportIntercomConfiguration
   let selectionEndpoint: URL
-  let messengerURL: URL
+  let conversationAPIURL: URL
 
   init(
     workspaceId: String,
     publicKey: String,
     intercom: JakeSupportIntercomConfiguration,
     selectionEndpoint: URL,
-    messengerURL: URL
+    conversationAPIURL: URL
   ) throws {
     let workspaceId = workspaceId.trimmingCharacters(in: .whitespacesAndNewlines)
     let publicKey = publicKey.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -166,13 +166,13 @@ struct JakeSupportRuntimeConfiguration: Equatable, Sendable {
       throw JakeSupportError.invalidConfiguration("The Intercom API key and app ID are required.")
     }
     try Self.requireSecureURL(selectionEndpoint, name: "selection endpoint")
-    try Self.requireSecureURL(messengerURL, name: "messenger URL")
+    try Self.requireSecureURL(conversationAPIURL, name: "conversation API URL")
 
     self.workspaceId = workspaceId
     self.publicKey = publicKey
     self.intercom = intercom
     self.selectionEndpoint = selectionEndpoint
-    self.messengerURL = messengerURL
+    self.conversationAPIURL = conversationAPIURL
   }
 
   private static func requireSecureURL(_ url: URL, name: String) throws {
@@ -206,7 +206,7 @@ struct JakeSupportRuntimeConfiguration: Equatable, Sendable {
           configuration: JakeConfiguration(
             workspaceId: configuration.workspaceId,
             publicKey: configuration.publicKey,
-            messengerURL: configuration.messengerURL
+            conversationAPIURL: configuration.conversationAPIURL
           )
         )
       )

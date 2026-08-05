@@ -101,7 +101,7 @@ final class DemoModel: ObservableObject, JakeDelegate {
       let session = try JSONDecoder().decode(SupportSession.self, from: data)
       try Jake.configureMessenger(
         workspaceId: session.workspaceId,
-        publicKey: session.publicKey
+        publicKey: session.publicKey,
       )
       try await Jake.authenticate(userId: "local-ios-test-user", token: session.token)
 

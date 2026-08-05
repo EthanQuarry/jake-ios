@@ -3,10 +3,10 @@ import XCTest
 @testable import JakeSDK
 
 final class JakeConfigurationTests: XCTestCase {
-  func testUsesTheProductionWebWidgetByDefault() {
+  func testUsesTheProductionConversationAPIByDefault() {
     XCTAssertEqual(
-      JakeConfiguration.hostedMessengerURL.absoluteString,
-      "https://widget.tryjake.ai/messenger"
+      JakeConfiguration.hostedConversationAPIURL.absoluteString,
+      "https://app.tryjake.ai"
     )
   }
 

@@ -10,7 +10,7 @@ final class JakeSupportConfigurationTests: XCTestCase {
       publicKey: " public-key ",
       intercom: JakeSupportIntercomConfiguration(apiKey: " api-key ", appId: " app-id "),
       selectionEndpoint: URL(string: "https://app.tryjake.ai/v1/sdk/provider-selection")!,
-      messengerURL: URL(string: "https://widget.tryjake.ai/messenger")!
+      conversationAPIURL: JakeConfiguration.hostedConversationAPIURL
     )
 
     XCTAssertEqual(configuration.workspaceId, "workspace")
@@ -26,7 +26,7 @@ final class JakeSupportConfigurationTests: XCTestCase {
         publicKey: "public-key",
         intercom: JakeSupportIntercomConfiguration(apiKey: "api-key", appId: "app-id"),
         selectionEndpoint: URL(string: "http://example.com/v1/sdk/provider-selection")!,
-        messengerURL: URL(string: "https://widget.tryjake.ai/messenger")!
+        conversationAPIURL: URL(string: "https://app.tryjake.ai")!
       )
     ) { error in
       XCTAssertEqual(
@@ -45,7 +45,7 @@ final class JakeSupportConfigurationTests: XCTestCase {
         publicKey: "public-key",
         intercom: JakeSupportIntercomConfiguration(apiKey: "api-key", appId: "app-id"),
         selectionEndpoint: URL(string: "http://127.0.0.1:3000/v1/sdk/provider-selection")!,
-        messengerURL: URL(string: "http://localhost:3001/messenger")!
+        conversationAPIURL: URL(string: "http://localhost:3001")!
       )
     )
   }

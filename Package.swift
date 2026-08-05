@@ -39,7 +39,7 @@ let package = Package(
       ]
     ),
     .target(name: "SupportAdapterKit"),
-    .target(name: "JakeSDK", dependencies: ["SupportAdapterKit"]),
+    .target(name: "JakeSDK", dependencies: ["SupportAdapterKit", "SupportKitUI", "CustomAgentAdapter"]),
     .target(
       name: "IntercomSupportAdapter",
       dependencies: [

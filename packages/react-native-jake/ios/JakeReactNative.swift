@@ -43,25 +43,25 @@ final class JakeReactNative: RCTEventEmitter, JakeDelegate {
       return
     }
 
-    let messengerURL: URL
-    if let value = options["messengerUrl"] as? String {
+    let conversationAPIURL: URL
+    if let value = options["conversationApiUrl"] as? String {
       guard
         let parsed = URL(string: value),
         let scheme = parsed.scheme?.lowercased(),
         ["http", "https"].contains(scheme)
       else {
-        reject("invalid_configuration", "messengerUrl must use HTTP or HTTPS.", nil)
+        reject("invalid_configuration", "conversationApiUrl must use HTTP or HTTPS.", nil)
         return
       }
-      messengerURL = parsed
+      conversationAPIURL = parsed
     } else {
-      messengerURL = JakeConfiguration.hostedMessengerURL
+      conversationAPIURL = JakeConfiguration.hostedConversationAPIURL
     }
     do {
       try Jake.configureMessenger(
         workspaceId: workspaceId,
         publicKey: publicKey,
-        messengerURL: messengerURL
+        conversationAPIURL: conversationAPIURL
       )
       resolve(nil)
     } catch {
@@ -206,6 +206,7 @@ private extension JakeError {
     case .invalidConfiguration: "invalid_configuration"
     case .invalidAuthentication: "invalid_authentication"
     case .authenticationRequired: "authentication_required"
+    case .authenticationExpired: "authentication_expired"
     case .tokenStorageFailed: "token_storage_failed"
     case .presentationUnavailable: "presentation_unavailable"
     case .messengerLoadFailed: "messenger_load_failed"

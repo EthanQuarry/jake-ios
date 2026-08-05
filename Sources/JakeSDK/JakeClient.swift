@@ -14,7 +14,7 @@ final class JakeClient {
   private var session: JakeSession?
 
   #if canImport(UIKit)
-    private let presenter = JakePresenter()
+    private let nativePresenter = JakeNativePresenter()
   #endif
 
   init(tokenStore: JakeTokenStore = JakeTokenStore()) {
@@ -25,7 +25,7 @@ final class JakeClient {
     do {
       try configuration.validate()
       #if canImport(UIKit)
-        presenter.reset()
+        nativePresenter.reset()
       #endif
       self.configuration = configuration
       session = tokenStore.load(workspaceId: configuration.workspaceId)
@@ -61,14 +61,14 @@ final class JakeClient {
     )
     try tokenStore.save(session, workspaceId: configuration.workspaceId)
     #if canImport(UIKit)
-      presenter.reset()
+      nativePresenter.reset()
     #endif
     self.session = session
   }
 
   func logout() {
     #if canImport(UIKit)
-      presenter.reset()
+      nativePresenter.reset()
     #endif
 
     if let configuration {
@@ -86,7 +86,7 @@ final class JakeClient {
     let normalizedEvent = event.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !normalizedEvent.isEmpty else { return }
     #if canImport(UIKit)
-      presenter.send(.track(name: normalizedEvent, properties: properties))
+      nativePresenter.send(.track(name: normalizedEvent, properties: properties))
     #endif
   }
 
@@ -96,7 +96,7 @@ final class JakeClient {
       return
     }
     #if canImport(UIKit)
-      presenter.send(.setUserAttributes(attributes))
+      nativePresenter.send(.setUserAttributes(attributes))
     #endif
   }
 
@@ -107,7 +107,7 @@ final class JakeClient {
     }
     guard !token.isEmpty else { return }
     #if canImport(UIKit)
-      presenter.send(.setPushToken(token))
+      nativePresenter.send(.setPushToken(token))
     #endif
   }
 
@@ -125,36 +125,28 @@ final class JakeClient {
     func presentThrowing(from viewController: UIViewController? = nil) throws {
       guard let configuration else { throw JakeError.notConfigured }
       guard let session else { throw JakeError.authenticationRequired }
-      let request = try JakeMessengerRequest.make(configuration: configuration, session: session)
-      try presenter.present(
-        request: request,
+      try nativePresenter.present(
+        configuration: configuration,
+        session: session,
         from: viewController,
-        onMessage: { [weak self] message in self?.handle(message) },
+        onAuthenticationExpired: { [weak self] in self?.handleAuthenticationExpired() },
         onError: { [weak self] error in self?.report(error) }
       )
     }
 
     func dismiss() {
-      presenter.dismiss()
+      nativePresenter.dismiss()
     }
 
-    private func handle(_ message: JakeWebMessage) {
-      switch message {
-      case .ready, .messageReceived, .openExternalURL:
-        break
-      case .close:
-        dismiss()
-      case .unreadCountChanged(let count):
-        updateUnreadCount(count)
-      case .authenticationExpired:
-        if let configuration {
-          tokenStore.clear(workspaceId: configuration.workspaceId)
-        }
-        session = nil
-        dismiss()
-        delegate?.jakeAuthenticationDidExpire()
-        NotificationCenter.default.post(name: .jakeAuthenticationDidExpire, object: nil)
+    private func handleAuthenticationExpired() {
+      if let configuration {
+        tokenStore.clear(workspaceId: configuration.workspaceId)
       }
+      session = nil
+      dismiss()
+      report(.authenticationExpired)
+      delegate?.jakeAuthenticationDidExpire()
+      NotificationCenter.default.post(name: .jakeAuthenticationDidExpire, object: nil)
     }
   #endif
 

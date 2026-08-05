@@ -234,19 +234,41 @@
     private var conversation: some View {
       ScrollViewReader { proxy in
         ScrollView {
-          LazyVStack(spacing: 12) {
-            ForEach(model.messages) { message in
-              MessageRow(message: message, theme: theme)
-                .id(message.id)
+          if model.messages.isEmpty {
+            WelcomeView(
+              branding: branding,
+              model: model,
+              theme: theme
+            )
+            .padding(.horizontal, 16)
+            .padding(.top, 40)
+          } else {
+            LazyVStack(spacing: 12) {
+              ForEach(model.messages) { message in
+                MessageRow(message: message, theme: theme)
+                  .id(message.id)
+                  .transition(
+                    .asymmetric(
+                      insertion: .opacity
+                        .combined(with: .move(edge: .bottom))
+                        .combined(with: .scale(scale: 0.95)),
+                      removal: .opacity
+                    )
+                  )
+              }
+              if model.isAgentTyping {
+                TypingIndicatorRow(theme: theme)
+                  .id("typing-indicator")
+                  .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .bottom)),
+                    removal: .opacity
+                  ))
+              }
             }
-            if model.isAgentTyping {
-              TypingIndicatorRow(theme: theme)
-                .id("typing-indicator")
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
-            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 18)
+            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: model.messages.count)
           }
-          .padding(.horizontal, 16)
-          .padding(.vertical, 18)
         }
         .background(theme.background)
         .supportKeyboardDismissal()
@@ -267,19 +289,19 @@
     private var citations: some View {
       if !model.citations.isEmpty {
         ScrollView(.horizontal, showsIndicators: false) {
-          HStack {
+          HStack(spacing: 8) {
             ForEach(model.citations) { citation in
               if let url = citation.url {
                 Link(destination: url) {
-                  CitationLabel(title: citation.title, theme: theme)
+                  CitationLabel(title: citation.title, theme: theme, isTappable: true)
                 }
               } else {
-                CitationLabel(title: citation.title, theme: theme)
+                CitationLabel(title: citation.title, theme: theme, isTappable: false)
               }
             }
           }
           .padding(.horizontal, 16)
-          .padding(.vertical, 8)
+          .padding(.vertical, 10)
         }
       }
     }
@@ -388,33 +410,32 @@
     }
 
     private var composer: some View {
-      VStack(spacing: 6) {
+      let draftIsEmpty = model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      return VStack(spacing: 6) {
         SupportComposerInput(text: $model.draft, theme: theme)
         HStack(spacing: 4) {
-          if model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Button {
-            } label: {
-              Image(systemName: "paperclip")
-                .font(.system(size: 17, weight: .medium))
-                .frame(width: 36, height: 36)
-                .foregroundStyle(theme.secondaryText)
-                .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Add attachment")
-            Button {
-            } label: {
-              Image(systemName: "face.smiling")
-                .font(.system(size: 17, weight: .medium))
-                .frame(width: 36, height: 36)
-                .foregroundStyle(theme.secondaryText)
-                .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Add emoji")
+          Button {
+          } label: {
+            Image(systemName: "paperclip")
+              .font(.system(size: 17, weight: .medium))
+              .frame(width: 36, height: 36)
+              .foregroundStyle(theme.secondaryText)
+              .contentShape(Circle())
           }
+          .buttonStyle(.plain)
+          .accessibilityLabel("Add attachment")
+          Button {
+          } label: {
+            Image(systemName: "face.smiling")
+              .font(.system(size: 17, weight: .medium))
+              .frame(width: 36, height: 36)
+              .foregroundStyle(theme.secondaryText)
+              .contentShape(Circle())
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel("Add emoji")
           Spacer(minLength: 8)
-          if !model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+          if !draftIsEmpty {
             Button(action: model.send) {
               Group {
                 if model.isSending {
@@ -434,22 +455,23 @@
             .disabled(!model.canSend)
             .opacity(model.canSend || model.isSending ? 1 : 0.45)
             .accessibilityLabel(model.isSending ? "Sending message" : "Send message")
+            .transition(.scale.combined(with: .opacity))
           }
         }
       }
-      .padding(.top, 9)
-      .padding(.leading, 13)
-      .padding(.trailing, 9)
-      .padding(.bottom, 8)
-      .frame(minHeight: 84)
+      .fixedSize(horizontal: false, vertical: true)
+      .padding(.top, 10)
+      .padding(.leading, 14)
+      .padding(.trailing, 10)
+      .padding(.bottom, 10)
       .background(theme.surface)
-      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
       .overlay(
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-          .stroke(theme.strongLine, lineWidth: 1)
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+          .stroke(theme.line, lineWidth: 1)
       )
       .padding(.horizontal, 12)
-      .padding(.top, 10)
+      .padding(.top, 8)
       .padding(.bottom, 12)
       .background(theme.background)
     }
@@ -458,65 +480,67 @@
   private struct MessageRow: View {
     let message: SupportMessage
     let theme: SupportConversationTheme
-    @State private var showFullTimestamp = false
-    @State private var now = Date()
+    @State private var showTimestamp = false
 
-    private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    private var isCustomer: Bool { message.role == .customer }
 
-    private var relativeTimestamp: String {
-      let formatter = RelativeDateTimeFormatter()
-      formatter.unitsStyle = .abbreviated
-      return formatter.localizedString(for: message.createdAt, relativeTo: now)
-    }
-
-    private var fullTimestamp: String {
+    private var timestamp: String {
       let formatter = DateFormatter()
       formatter.dateStyle = .medium
       formatter.timeStyle = .short
       return formatter.string(from: message.createdAt)
     }
 
+    @ViewBuilder
+    private var messageText: some View {
+      if !isCustomer, #available(iOS 15.0, macOS 12.0, *) {
+        let attributed = (try? AttributedString(
+          markdown: message.body,
+          options: AttributedString.MarkdownParsingOptions(
+            interpretedSyntax: .inlineOnlyPreservingWhitespace
+          )
+        )) ?? AttributedString(message.body)
+        Text(attributed)
+          .font(.system(size: 15))
+      } else {
+        Text(message.body)
+          .font(.system(size: 15))
+      }
+    }
+
     var body: some View {
-      VStack(alignment: message.role == .customer ? .trailing : .leading, spacing: 3) {
+      VStack(alignment: isCustomer ? .trailing : .leading, spacing: 4) {
         HStack {
-          if message.role == .customer { Spacer(minLength: 44) }
-          Text(message.body)
-            .font(.system(size: 15))
+          if isCustomer { Spacer(minLength: 60) }
+          messageText
             .padding(.horizontal, 14)
-            .padding(.vertical, 11)
-            .background(
-              message.role == .customer
-                ? theme.accent
-                : theme.surface
-            )
-            .foregroundStyle(
-              message.role == .customer
-                ? theme.accentForeground
-                : theme.text
-            )
+            .padding(.vertical, 10)
+            .foregroundStyle(isCustomer ? .white : theme.text)
+            .background(isCustomer ? theme.customerBubble : theme.agentBubble)
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay(
               RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(message.role == .customer ? Color.clear : theme.line, lineWidth: 1)
+                .stroke(isCustomer ? Color.clear : theme.line, lineWidth: 1)
             )
             .onLongPressGesture {
-              withAnimation { showFullTimestamp.toggle() }
+              withAnimation(.easeInOut(duration: 0.15)) { showTimestamp.toggle() }
             }
-          if message.role != .customer { Spacer(minLength: 44) }
+          if !isCustomer { Spacer(minLength: 60) }
         }
-        Text(showFullTimestamp ? fullTimestamp : relativeTimestamp)
-          .font(.system(size: 11))
-          .foregroundStyle(theme.tertiaryText)
-          .padding(.horizontal, 4)
-          .animation(.easeInOut(duration: 0.2), value: showFullTimestamp)
+        if showTimestamp {
+          Text(timestamp)
+            .font(.system(size: 11))
+            .foregroundStyle(theme.tertiaryText)
+            .padding(.horizontal, 4)
+            .transition(.opacity)
+        }
       }
-      .onReceive(timer) { _ in now = Date() }
     }
   }
 
   private struct TypingIndicatorRow: View {
     let theme: SupportConversationTheme
-    @State private var phase: Double = 0
+    @State private var animating = false
 
     var body: some View {
       HStack(alignment: .bottom, spacing: 0) {
@@ -524,13 +548,13 @@
           ForEach(0..<3, id: \.self) { index in
             Circle()
               .fill(theme.secondaryText)
-              .frame(width: 7, height: 7)
-              .scaleEffect(dotScale(for: index))
+              .frame(width: 8, height: 8)
+              .opacity(dotOpacity(for: index))
               .animation(
-                .easeInOut(duration: 0.5)
+                .easeInOut(duration: 0.55)
                   .repeatForever(autoreverses: true)
-                  .delay(Double(index) * 0.2),
-                value: phase
+                  .delay(Double(index) * 0.18),
+                value: animating
               )
           }
         }
@@ -544,55 +568,66 @@
         )
         Spacer(minLength: 44)
       }
-      .onAppear { phase = 1 }
+      .onAppear { animating = true }
+      .onDisappear { animating = false }
     }
 
-    private func dotScale(for index: Int) -> CGFloat {
-      phase == 0 ? 1.0 : (index == 0 ? 0.5 : (index == 1 ? 0.65 : 0.5))
+    private func dotOpacity(for index: Int) -> Double {
+      animating ? (index == 1 ? 0.3 : 0.15) : 1.0
     }
   }
 
   private struct SupportComposerInput: View {
     @Binding var text: String
     let theme: SupportConversationTheme
+    @State private var isFocused = false
 
     var body: some View {
       ZStack(alignment: .topLeading) {
-        if text.isEmpty {
-          Text("Message support")
+        if text.isEmpty && !isFocused {
+          Text("Message...")
             .foregroundStyle(theme.tertiaryText)
             .padding(.horizontal, 1)
             .padding(.vertical, 3)
+            .allowsHitTesting(false)
             .accessibilityHidden(true)
         }
         #if canImport(UIKit)
-          GrowingTextView(text: $text, foregroundColor: theme.text)
+          GrowingTextView(text: $text, foregroundColor: theme.text, isFocused: $isFocused)
             .frame(minHeight: 28, maxHeight: 132)
         #else
-          TextField("Message support", text: $text, axis: .vertical)
+          TextField("Message...", text: $text, axis: .vertical)
             .lineLimit(1...6)
             .textFieldStyle(.plain)
             .foregroundStyle(theme.text)
             .padding(.vertical, 2)
         #endif
       }
-      .accessibilityLabel("Message support")
+      .accessibilityLabel("Message...")
     }
   }
 
   private struct CitationLabel: View {
     let title: String
     let theme: SupportConversationTheme
+    let isTappable: Bool
 
     var body: some View {
-      HStack(spacing: 6) {
+      HStack(spacing: 5) {
         Image(systemName: "doc.text")
-        Text(title).lineLimit(1)
+          .font(.caption)
+        Text(title)
+          .lineLimit(1)
+          .font(.caption)
+        if isTappable {
+          Image(systemName: "chevron.right")
+            .font(.system(size: 9, weight: .semibold))
+            .foregroundStyle(theme.tertiaryText)
+        }
       }
-      .font(.caption)
       .foregroundStyle(theme.text)
-      .padding(.horizontal, 10)
-      .padding(.vertical, 7)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 9)
       .background(theme.surface)
       .clipShape(Capsule())
       .overlay(Capsule().stroke(theme.line, lineWidth: 1))
@@ -641,6 +676,42 @@
     }
   }
 
+  private struct WelcomeView: View {
+    let branding: SupportConversationBranding
+    let model: SupportConversationModel
+    let theme: SupportConversationTheme
+    @State private var appeared = false
+
+    var body: some View {
+      VStack(spacing: 16) {
+        SupportAvatarView(
+          name: branding.assistantName ?? model.channelName,
+          avatarURL: branding.assistantAvatarURL,
+          theme: theme
+        )
+        .frame(width: 64, height: 64)
+        VStack(spacing: 6) {
+          Text("Hi there 👋")
+            .font(.system(size: 24, weight: .semibold))
+            .foregroundStyle(theme.text)
+          Text("How can we help you today?")
+            .font(.system(size: 15))
+            .foregroundStyle(theme.secondaryText)
+            .multilineTextAlignment(.center)
+        }
+      }
+      .frame(maxWidth: .infinity)
+      .padding(.vertical, 24)
+      .scaleEffect(appeared ? 1 : 0.88)
+      .opacity(appeared ? 1 : 0)
+      .onAppear {
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.75).delay(0.05)) {
+          appeared = true
+        }
+      }
+    }
+  }
+
   private extension View {
     @ViewBuilder
     func supportKeyboardDismissal() -> some View {
@@ -673,9 +744,10 @@
     private struct GrowingTextView: UIViewRepresentable {
       @Binding var text: String
       let foregroundColor: Color
+      @Binding var isFocused: Bool
 
       func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text)
+        Coordinator(text: $text, isFocused: $isFocused)
       }
 
       func makeUIView(context: Context) -> IntrinsicTextView {
@@ -689,7 +761,7 @@
         textView.textContainer.lineFragmentPadding = 0
         textView.keyboardDismissMode = .interactive
         textView.returnKeyType = .default
-        textView.accessibilityLabel = "Message support"
+        textView.accessibilityLabel = "Message..."
         textView.accessibilityHint = "Enter a message for support"
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.setContentHuggingPriority(.required, for: .vertical)
@@ -698,6 +770,7 @@
 
       func updateUIView(_ textView: IntrinsicTextView, context: Context) {
         context.coordinator.text = $text
+        context.coordinator.isFocused = $isFocused
         textView.textColor = UIColor(foregroundColor)
         if textView.text != text {
           textView.text = text
@@ -708,22 +781,42 @@
       @MainActor
       final class Coordinator: NSObject, UITextViewDelegate {
         var text: Binding<String>
+        var isFocused: Binding<Bool>
 
-        init(text: Binding<String>) {
+        init(text: Binding<String>, isFocused: Binding<Bool>) {
           self.text = text
+          self.isFocused = isFocused
         }
 
         func textViewDidChange(_ textView: UITextView) {
           text.wrappedValue = textView.text
+        }
+
+        func textViewDidBeginEditing(_ textView: UITextView) {
+          isFocused.wrappedValue = true
+        }
+
+        func textViewDidEndEditing(_ textView: UITextView) {
+          isFocused.wrappedValue = false
         }
       }
     }
 
     @MainActor
     private final class IntrinsicTextView: UITextView {
-      private let minimumHeight: CGFloat = 28
-      private let maximumHeight: CGFloat = 132
+      private let minimumHeight: CGFloat = 34
+      private let maximumHeight: CGFloat = 120
       private var isUpdatingScrollState = false
+
+      override init(frame: CGRect, textContainer: NSTextContainer?) {
+        super.init(frame: frame, textContainer: textContainer)
+        isScrollEnabled = false
+      }
+
+      @available(*, unavailable)
+      required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+      }
 
       override var contentSize: CGSize {
         didSet {
