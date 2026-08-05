@@ -1,6 +1,6 @@
 {
   "name": "@tryjakeai/react-native",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "React Native bridge for Jake Messenger",
   "main": "src/index.js",
   "types": "src/index.d.ts",

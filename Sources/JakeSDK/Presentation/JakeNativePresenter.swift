@@ -1,9 +1,15 @@
 #if canImport(UIKit)
   import UIKit
   import SwiftUI
-  import CustomAgentAdapter
-  import SupportKitCore
-  import SupportKitUI
+  #if canImport(CustomAgentAdapter)
+    import CustomAgentAdapter
+  #endif
+  #if canImport(SupportKitCore)
+    import SupportKitCore
+  #endif
+  #if canImport(SupportKitUI)
+    import SupportKitUI
+  #endif
 
   enum JakeNativePresenterCommand: Sendable {
     case track(name: String, properties: [String: JakeValue])

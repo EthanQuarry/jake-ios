@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(SupportKitCore)
 import SupportKitCore
+#endif
 
 public struct SupportRouterConfiguration: Sendable {
   public let baseURL: URL

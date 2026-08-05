@@ -1,6 +1,8 @@
 import Foundation
 import JakeSDK
+#if canImport(SupportKitCore)
 import SupportKitCore
+#endif
 
 @MainActor
 public final class JakeChannelAdapter: SupportChannelAdapter, JakeDelegate {

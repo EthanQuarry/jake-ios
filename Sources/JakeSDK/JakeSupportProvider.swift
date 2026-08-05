@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(SupportAdapterKit)
 import SupportAdapterKit
+#endif
 
 @MainActor
 public final class JakeSupportProvider: SupportProvider, JakeDelegate {

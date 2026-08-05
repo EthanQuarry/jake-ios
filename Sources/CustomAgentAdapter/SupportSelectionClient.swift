@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(SupportKitCore)
 import SupportKitCore
+#endif
 
 public struct SupportExperienceSelection: Codable, Equatable, Sendable {
   public let channel: SupportChannelID

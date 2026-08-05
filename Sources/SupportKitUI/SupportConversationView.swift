@@ -1,5 +1,7 @@
 #if canImport(SwiftUI)
-  import SupportKitCore
+  #if canImport(SupportKitCore)
+    import SupportKitCore
+  #endif
   import SwiftUI
 
   #if canImport(UIKit)

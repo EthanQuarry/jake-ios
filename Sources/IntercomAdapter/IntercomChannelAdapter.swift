@@ -1,7 +1,11 @@
 #if canImport(UIKit)
   import Foundation
-  import Intercom
-  import SupportKitCore
+  #if canImport(Intercom)
+    import Intercom
+  #endif
+  #if canImport(SupportKitCore)
+    import SupportKitCore
+  #endif
   import UIKit
 
   public struct IntercomChannelConfiguration: Equatable, Sendable {

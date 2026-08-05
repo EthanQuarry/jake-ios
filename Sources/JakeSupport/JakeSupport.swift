@@ -1,9 +1,13 @@
 import Foundation
 import JakeSDK
+#if canImport(SupportAdapterKit)
 import SupportAdapterKit
+#endif
 
 #if canImport(UIKit)
-  import IntercomSupportAdapter
+  #if canImport(IntercomSupportAdapter)
+    import IntercomSupportAdapter
+  #endif
   import UIKit
 #endif
 
