@@ -9,6 +9,10 @@ final class JakeReactNative: RCTEventEmitter, JakeDelegate {
 
   override static func requiresMainQueueSetup() -> Bool { true }
 
+  // Required: this class is @MainActor, so exported methods must not run on React
+  // Native's TurboModule queue. Without this the Swift 6 isolation check traps.
+  nonisolated override var methodQueue: DispatchQueue! { DispatchQueue.main }
+
   override func supportedEvents() -> [String]! {
     ["jakeUnreadCountChanged", "jakeAuthenticationExpired", "jakeError"]
   }

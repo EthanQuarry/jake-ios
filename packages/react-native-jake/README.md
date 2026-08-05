@@ -311,6 +311,13 @@ import type {
 Rebuild the native application after installing the package. On iOS, run `pod install` before
 rebuilding. Expo users must create a development build rather than opening the project in Expo Go.
 
+### The app terminates with `SIGTRAP` when support opens (iOS)
+
+Fixed in `0.2.2`. Version `0.1.0` declared the iOS bridge `@MainActor` without directing React
+Native to invoke exported methods on the main queue, so Swift 6 raised an isolation failure on the
+TurboModule queue. The crash report names `com.meta.react.turbomodulemanager.queue` and a
+`JakeReactNative` symbol. Upgrade to `0.2.2` and rebuild the native application.
+
 ### `authentication_required`
 
 Call `Jake.configure()`, obtain a fresh customer token from your backend, call

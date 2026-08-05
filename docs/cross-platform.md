@@ -21,7 +21,7 @@ long-lived credentials never belong in a mobile bundle.
 | Swift/iOS | `JakeSDK` Swift package or CocoaPod `0.1.0` | `Sources/JakeSDK` |
 | Kotlin/Android | Maven Central `ai.tryjake:jake-sdk:0.1.0` | `android/jake-sdk` |
 | Flutter | Git package `packages/jake_flutter` (not yet on pub.dev) | `JakeSDK` on iOS, Kotlin SDK on Android |
-| React Native | npm `@tryjakeai/react-native@0.1.0` | `JakeSDK` on iOS, Kotlin SDK on Android |
+| React Native | npm `@tryjakeai/react-native@0.2.2` | `JakeSDK` on iOS, Kotlin SDK on Android |
 
 The Android library is published on Maven Central. During monorepo development, include
 `:jake-sdk` in the Gradle build and both bridge packages will select the local project. Published
